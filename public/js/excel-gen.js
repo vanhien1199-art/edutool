@@ -46,8 +46,7 @@ async function handleGenerate() {
     }
 
     try {
-        // 3. Gọi Backend Cloudflare Function
-        // Đường dẫn chuẩn là /generateQuiz (tương ứng với file functions/generateQuiz.js)
+        console.log("--- ĐANG CHẠY PHIÊN BẢN MỚI NHẤT (FIX URL) ---"); // <--- Dòng này để kiểm tra
       const timestamp = new Date().getTime(); 
         const response = await fetch(`/generateQuiz?v=${timestamp}`, {  // <--- Lưu ý dấu backtick ` (cạnh phím số 1)
             method: 'POST',
@@ -173,4 +172,5 @@ function createAndDownloadExcel(rawText, payload) {
 
     XLSX.writeFile(wb, fileName);
 }
+
 
