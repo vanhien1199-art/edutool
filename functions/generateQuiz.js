@@ -1,30 +1,42 @@
-// File: /functions/generateQuiz.js
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-export async function onRequest(context) {
+// 1. Xử lý Preflight Request (Trình duyệt hỏi: "Tôi có được gửi POST không?")
+export async function onRequestOptions() {
+    return new Response(null, {
+        status: 204,
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        },
+    });
+}
+
+// 2. Xử lý Logic chính (Khi trình duyệt gửi lệnh POST thật)
+// Lưu ý: Đặt tên hàm là 'onRequestPost' để Cloudflare tự động chỉ định xử lý POST
+export async function onRequestPost(context) {
     const apiKey = context.env.GOOGLE_API_KEY;
 
-    if (!apiKey) {
-        return new Response(JSON.stringify({ error: 'LỖI CẤU HÌNH: GOOGLE_API_KEY chưa được thiết lập!' }), { status: 500 });
-    }
+    // Cấu hình Header trả về (Bắt buộc để không bị lỗi CORS)
+    const responseHeaders = {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+    };
 
-    if (context.request.method !== "POST") {
-        return new Response("Method not allowed", { status: 405 });
+    if (!apiKey) {
+        return new Response(JSON.stringify({ error: "Chưa cấu hình GOOGLE_API_KEY" }), { 
+            status: 500, 
+            headers: responseHeaders 
+        });
     }
 
     try {
         const body = await context.request.json();
-        // Lấy các tham số từ Client gửi lên
         const { mon_hoc, lop, bo_sach, bai_hoc, c1, c2, c3, c4, c5, c6 } = body;
 
-        const genAI = new GoogleGenerativeAI(apiKey);
-        // Sử dụng model flash để phản hồi nhanh, giảm nguy cơ timeout
-        const model = genAI.getGenerativeModel({ model: "gemini-3-pro-preview" });
-
-        // --- ĐỊNH NGHĨA HEADER CHÍNH XÁC 22 CỘT (Dùng để đưa vào Prompt) ---
         const header_str = "STT|Loại câu hỏi|Độ khó|Mức độ nhận thức|Đơn vị kiến thức|Mức độ đánh giá|Là câu hỏi con của câu hỏi chùm?|Nội dung câu hỏi|Đáp án đúng|Đáp án 1|Đáp án 2|Đáp án 3|Đáp án 4|Đáp án 5|Đáp án 6|Đáp án 7|Đáp án 8|Tags (phân cách nhau bằng dấu ;)|Giải thích|Đảo đáp án|Tính điểm mỗi đáp án đúng|Nhóm đáp án theo từng chỗ trống";
 
-        // --- PROMPT (CHUYỂN TỪ PYTHON SANG JS TEMPLATE LITERAL - GIỮ NGUYÊN VĂN) ---
+        // --- PROMPT (GIỮ NGUYÊN) ---
         const prompt_cua_ban = `
     Bạn là chuyên gia khảo thí quản lí dữ liệu cho hệ thống LMS (VNEDU) số 1 Việt Nam. Bạn am hiểu sâu sắc chương trình giáo dục phổ thông 2018. Nhiệm vụ chính của bạn là xây dựng ngân hàng câu hỏi bám sát bộ sách giáo khoa ${bo_sach} theo các chủ đề sau:
     Chủ đề: "${bai_hoc}" - Môn ${mon_hoc} - Lớp ${lop}.
@@ -186,18 +198,21 @@ QUY TẮC ĐIỀN DỮ LIỆU:
 7. Đảm bảo mọi dòng có đúng 22 trường, STT tăng dần từ 1, độ khó đa dạng, nội dung phù hợp chủ đề. KẾT THÚC MỖI DÒNG BẰNG | ĐỦ SỐ LƯỢNG.
         `;
 
-        // Gọi AI
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
         const result = await model.generateContent(prompt_cua_ban);
         const response = await result.response;
-        const rawText = response.text();
+        const text = response.text();
 
-        // Trả về dữ liệu thô để Client xử lý Excel (nhằm giảm tải cho Worker)
-        return new Response(JSON.stringify({ rawData: rawText }), {
-            headers: { 'Content-Type': 'application/json' }
+        return new Response(JSON.stringify({ result: text }), {
+            headers: responseHeaders
         });
 
     } catch (error) {
-        return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+        return new Response(JSON.stringify({ error: error.message }), { 
+            status: 500,
+            headers: responseHeaders
+        });
     }
-
 }
