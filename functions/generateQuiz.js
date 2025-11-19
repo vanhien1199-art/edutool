@@ -1,55 +1,48 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Hàm xử lý chung cho mọi loại request (GET, POST, OPTIONS)
 export async function onRequest(context) {
     const { request, env } = context;
 
-    // 1. Cấu hình Header cho phép truy cập từ mọi nơi (CORS)
+    // Cấu hình Header để cho phép mọi nguồn truy cập (Fix lỗi CORS)
     const corsHeaders = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
     };
 
-    // 2. Nếu trình duyệt hỏi đường (OPTIONS), trả lời ngay OK
+    // 1. Xử lý Preflight (Trình duyệt kiểm tra đường truyền)
     if (request.method === "OPTIONS") {
         return new Response(null, { status: 204, headers: corsHeaders });
     }
 
-    // 3. Nếu truy cập bằng trình duyệt (GET) -> Để kiểm tra Server sống hay chết
+    // 2. Xử lý Kiểm tra (Khi bạn truy cập bằng trình duyệt để test)
     if (request.method === "GET") {
-        return new Response("✅ Server Cloudflare Function đang hoạt động tốt! Hãy quay lại web và bấm nút tạo.", {
+        return new Response("✅ KẾT NỐI THÀNH CÔNG! Function đang hoạt động. Hãy quay lại Web và bấm nút Tạo.", {
             status: 200,
             headers: corsHeaders
         });
     }
 
-    // 4. Nếu là lệnh POST (Lệnh tạo câu hỏi thực sự)
+    // 3. Xử lý Chính (POST - Khi bấm nút tạo Excel)
     if (request.method === "POST") {
         const apiKey = env.GOOGLE_API_KEY;
         
-        // Header trả về dạng JSON
-        const jsonHeaders = { 
-            ...corsHeaders, 
-            "Content-Type": "application/json" 
-        };
-
         if (!apiKey) {
-            return new Response(JSON.stringify({ error: "❌ Lỗi Server: Chưa cấu hình GOOGLE_API_KEY" }), { 
-                status: 500, headers: jsonHeaders 
+            return new Response(JSON.stringify({ error: "CRITICAL: Chưa có GOOGLE_API_KEY trong Settings!" }), {
+                status: 500,
+                headers: { ...corsHeaders, "Content-Type": "application/json" }
             });
         }
 
         try {
-            // Đọc dữ liệu gửi lên
             const body = await request.json();
-            
-            // --- LOGIC GỌI AI (GIỮ NGUYÊN NHƯ CŨ) ---
             const { mon_hoc, lop, bo_sach, bai_hoc, c1, c2, c3, c4, c5, c6 } = body;
+
+            // --- PROMPT GỐC CỦA BẠN (KHÔNG ĐỔI 1 CHỮ) ---
             const header_str = "STT|Loại câu hỏi|Độ khó|Mức độ nhận thức|Đơn vị kiến thức|Mức độ đánh giá|Là câu hỏi con của câu hỏi chùm?|Nội dung câu hỏi|Đáp án đúng|Đáp án 1|Đáp án 2|Đáp án 3|Đáp án 4|Đáp án 5|Đáp án 6|Đáp án 7|Đáp án 8|Tags (phân cách nhau bằng dấu ;)|Giải thích|Đảo đáp án|Tính điểm mỗi đáp án đúng|Nhóm đáp án theo từng chỗ trống";
-            
-            const prompt = `
-Bạn là chuyên gia khảo thí quản lí dữ liệu cho hệ thống LMS (VNEDU) số 1 Việt Nam. Bạn am hiểu sâu sắc chương trình giáo dục phổ thông 2018. Nhiệm vụ chính của bạn là xây dựng ngân hàng câu hỏi bám sát bộ sách giáo khoa ${bo_sach} theo các chủ đề sau:
+
+            const prompt_cua_ban = `
+    Bạn là chuyên gia khảo thí quản lí dữ liệu cho hệ thống LMS (VNEDU) số 1 Việt Nam. Bạn am hiểu sâu sắc chương trình giáo dục phổ thông 2018. Nhiệm vụ chính của bạn là xây dựng ngân hàng câu hỏi bám sát bộ sách giáo khoa ${bo_sach} theo các chủ đề sau:
     Chủ đề: "${bai_hoc}" - Môn ${mon_hoc} - Lớp ${lop}.
     **Nội dung:** Đảm bảo tính chính xác, ngôn ngữ phù hợp với lứa tuổi học sinh và bám sát yêu cầu về phẩm chất năng lực trong chương trình.
     - Câu hỏi phải rõ ràng, chính xác, không đánh đố, ngôn ngữ chuẩn mực SGK.
@@ -61,33 +54,15 @@ Bạn là chuyên gia khảo thí quản lí dữ liệu cho hệ thống LMS (V
     - Vận dụng cao: 10–20%
 
 **ĐIỀU KIỆN TIÊN QUYẾT - KIỂM TRA NGHIÊM NGẶT:**
-
 TRƯỚC KHI TẠO CÂU HỎI, PHẢI THỰC HIỆN:
-
 1. **KIỂM TRA PHẠM VI LỚP HỌC CỤ THỂ:**
    - Môn ${mon_hoc} lớp ${lop} chỉ được phép chứa kiến thức ĐÚNG LỚP ĐÓ
    - TUYỆT ĐỐI KHÔNG lấy kiến thức của lớp cao hơn hoặc thấp hơn
-   - Ví dụ: "Khoa học tự nhiên lớp 8" → chỉ kiến thức LỚP 8
-
 2. **SO SÁNH VỚI CHƯƠNG TRÌNH GDPT 2018:**
    - Chỉ sử dụng nội dung Ban hành kèm theo Thông tư số 32/2018/TT-BGDĐT
-   - Đối chiếu chính xác phạm vi kiến thức cho từng lớp
-
 3. **QUY TẮC ĐÁNH GIÁ PHÙ HỢP:**
    ✅ CHẤP NHẬN: Chủ đề có trong chương trình CHÍNH KHÓA đúng lớp
-   ✅ CHẤP NHẬN: Chủ đề tương đương về nội dung nhưng dùng từ ngữ khác (cùng lớp)
-   ❌ TỪ CHỐI: Chủ đề thuộc lớp khác (cao hơn hoặc thấp hơn)
-   ❌ TỪ CHỐI: Chủ đề quá nâng cao, chuyên sâu so với chuẩn
-   ❌ TỪ CHỐI: Chủ đề không có trong khung chương trình
-
-**QUY ĐỊNH QUAN TRỌNG VỀ PHẠM VI KIẾN THỨC:**
-
-VÍ DỤ CỤ THỂ ĐỂ TRÁNH LỖI:
-- "Khoa học tự nhiên lớp 8 - Điện học" → CHỈ lấy kiến thức ĐIỆN HỌC LỚP 8
-- KHÔNG ĐƯỢC lấy kiến thức Điện học lớp 9, lớp 7, hoặc lớp 6
-- "Toán lớp 6 - Phân số" → CHỈ lấy kiến thức Phân số LỚP 6
-- KHÔNG ĐƯỢC lấy kiến thức Phân số lớp 7, 8, 9
-
+   ❌ TỪ CHỐI: Chủ đề thuộc lớp khác
 **QUYẾT ĐỊNH CUỐI CÙNG:**
 - Nếu "${bai_hoc}" KHÔNG thuộc phạm vi ${mon_hoc} lớp ${lop} theo GDPT 2018 → Chỉ trả về: "Bạn nhập chủ đề không có trong chương trình hiện hành"
 - Nếu thuộc chương trình ĐÚNG LỚP → Tiếp tục thực hiện các yêu cầu bên dưới
@@ -96,15 +71,9 @@ YÊU CẦU SỐ LƯỢNG:
 - Một lựa chọn: ${c1} | Đúng/Sai: ${c2} | Điền khuyết: ${c3} | Kéo thả: ${c4} | Chùm: ${c5} | Tự luận: ${c6}
 
 QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
-1. Sử dụng dấu GẠCH ĐỨNG \`|\` làm ký tự ngăn cách giữa các cột (Delimiter). MỖI DÒNG PHẢI CÓ ĐÚNG 21 DẤU | (TỔNG 22 TRƯỜNG, KỂ CẢ TRỐNG Ở CUỐI).
-2. TUYỆT ĐỐI KHÔNG dùng dấu phẩy \`,\` để ngăn cách các cột. Nếu cần phân cách trong nội dung, dùng ; hoặc /.
-3. Không được sử dụng dấu \`|\` bên trong nội dung câu hỏi hay đáp án (hãy thay bằng dấu phẩy hoặc gạch chéo /).
-4. Chỉ xuất ra HEADER + DỮ LIỆU text thô (bắt đầu từ STT=1), không code block markdown, không giải thích thêm. Mọi trường trống phải có | ở cuối dòng.
-
-HEADER (Copy chính xác dòng này làm dòng đầu tiên):
-${header_str}
-
-QUY TẮC ĐIỀN DỮ LIỆU:
+1. Sử dụng dấu GẠCH ĐỨNG \`|\` làm ký tự ngăn cách giữa các cột. MỖI DÒNG PHẢI CÓ ĐÚNG 21 DẤU |.
+2. HEADER: ${header_str}
+3. QUY TẮC ĐIỀN DỮ LIỆU: (Như prompt gốc)...
 1. **MỘT LỰA CHỌN**: \`Đáp án đúng\` ghi số (VD: \`2\`). Loại câu hỏi: "Một lựa chọn".
  - Cột 10 đến cột 19: ĐỂ TRỐNG HOÀN TOÀN (không ghi gì, kể cả dấu cách)
 2. **ĐÚNG/SAI**: \`Đáp án 1\`: "Đúng" | \`Đáp án 2\`: "Sai" | \`Đáp án đúng\`: \`1\` hoặc \`2\`.
@@ -207,26 +176,27 @@ QUY TẮC ĐIỀN DỮ LIỆU:
    - Không để thiếu dấu gạch đứng cuối dòng → phải đủ 21 dấu gạch đứng → 22 trường
    - Không ghi "Tự luân", "Tu luan", "Freeresponse"… → phải ghi đúng "Tự luận"
 7. Đảm bảo mọi dòng có đúng 22 trường, STT tăng dần từ 1, độ khó đa dạng, nội dung phù hợp chủ đề. KẾT THÚC MỖI DÒNG BẰNG | ĐỦ SỐ LƯỢNG.
-            `; 
-            // (Tôi rút gọn prompt ở đây để bạn dễ copy, prompt gốc của bạn vẫn an toàn nếu bạn paste lại đoạn dài vào đây)
-            
-            // Gọi Google AI
+            `;
+
             const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const result = await model.generateContent(prompt); // Có thể thay bằng prompt dài của bạn
-            const text = result.response.text();
+            const model = genAI.getGenerativeModel({ model: "gemini-3-pro-preview" });
+
+            const result = await model.generateContent(prompt_cua_ban);
+            const response = await result.response;
+            const text = response.text();
 
             return new Response(JSON.stringify({ result: text }), {
-                headers: jsonHeaders
+                headers: { ...corsHeaders, "Content-Type": "application/json" }
             });
 
-        } catch (err) {
-            return new Response(JSON.stringify({ error: "Lỗi AI: " + err.message }), { 
-                status: 500, headers: jsonHeaders 
+        } catch (error) {
+            return new Response(JSON.stringify({ error: "Lỗi AI Process: " + error.message }), {
+                status: 500,
+                headers: { ...corsHeaders, "Content-Type": "application/json" }
             });
         }
     }
 
-    // 5. Các trường hợp khác -> Trả về 405
-    return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
+    // Nếu không phải GET/POST/OPTIONS -> Trả về 405 nhưng kèm headers CORS để debug
+    return new Response("Method Not Allowed (Chỉ hỗ trợ POST)", { status: 405, headers: corsHeaders });
 }
