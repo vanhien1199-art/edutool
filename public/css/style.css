@@ -1,130 +1,127 @@
 /* File: public/css/style.css */
 
-/* Tùy chỉnh font và layout chung */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f9f9f9;
+    background-color: #f4f7f6;
     color: #333;
 }
 
 .container {
     background-color: #fff;
     padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
     margin-top: 40px;
     margin-bottom: 40px;
+    border: 1px solid #e1e1e1;
 }
 
-/* Tiêu đề */
 h2 {
     color: #2c3e50;
-    font-weight: 600;
+    font-weight: 700;
     text-align: center;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
 hr {
-    border-top: 2px solid #eee;
     margin-bottom: 30px;
+    border-top: 2px solid #f0f0f0;
 }
 
-/* Input và Select */
 input[type="text"], 
 input[type="number"], 
 select, 
 textarea {
-    border: 1px solid #d1d1d1;
-    border-radius: 4px;
-    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    height: 42px;
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+textarea {
+    height: 80px;
+    resize: vertical;
 }
 
 input:focus, 
 select:focus, 
 textarea:focus {
-    border-color: #33C3F0;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
     outline: 0;
 }
 
 label {
     font-weight: 600;
-    margin-bottom: 5px;
-    color: #555;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    color: #444;
 }
 
-/* Nút bấm chính */
 .button-primary {
     background-color: #007bff !important;
     border-color: #007bff !important;
-    font-size: 1.2rem;
-    font-weight: bold;
-    height: 45px;
-    line-height: 45px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    height: 50px;
+    line-height: 50px;
     width: 100%;
-    margin-top: 20px;
+    margin-top: 25px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,123,255,0.2);
 }
 
 .button-primary:hover {
     background-color: #0056b3 !important;
     border-color: #0056b3 !important;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0,123,255,0.3);
 }
 
 .button-primary:disabled {
-    background-color: #ccc !important;
-    border-color: #ccc !important;
+    background-color: #b0c4de !important;
+    border-color: #b0c4de !important;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
-/* Khu vực thông báo trạng thái */
+/* Thông báo trạng thái */
 #statusArea {
     margin-top: 25px;
     text-align: center;
-    font-size: 1.1em;
+    font-weight: 500;
+    min-height: 30px;
 }
 
 .loading {
     color: #e67e22;
-    font-weight: bold;
-    display: none;
 }
-
-/* Hiệu ứng animation cho loading */
 .loading::after {
-    content: " ...";
-    animation: dots 1.5s steps(5, end) infinite;
-}
-
-@keyframes dots {
-    0%, 20% { color: rgba(0,0,0,0); text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0);}
-    40% { color: #e67e22; text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0);}
-    60% { text-shadow: .25em 0 0 #e67e22, .5em 0 0 rgba(0,0,0,0);}
-    80%, 100% { text-shadow: .25em 0 0 #e67e22, .5em 0 0 #e67e22;}
+    content: " ⏳";
+    animation: spin 2s linear infinite; 
 }
 
 .success {
     color: #27ae60;
-    font-weight: bold;
-    display: none;
-    background-color: #d4edda;
+    background-color: #e8f8f5;
     padding: 10px;
-    border-radius: 4px;
-    border: 1px solid #c3e6cb;
+    border-radius: 6px;
+    display: inline-block;
 }
 
 .error {
     color: #c0392b;
-    font-weight: bold;
-    display: none;
-    background-color: #f8d7da;
+    background-color: #fce4e4;
     padding: 10px;
-    border-radius: 4px;
-    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    display: inline-block;
 }
 
-/* Responsive cho mobile */
 @media (max-width: 550px) {
-    .container { padding: 20px; }
-    input[type="number"] { margin-bottom: 15px; }
+    .container { padding: 20px; margin-top: 20px; }
+    .six.columns { width: 100%; margin-left: 0; }
 }
