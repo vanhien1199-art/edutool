@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Tạo Ngân Hàng Câu Hỏi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+    <link rel="stylesheet" href="css/style.css"> 
+    
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <button class="button-primary" id="btnGenerate">🚀 Tạo File Excel Ngay</button>
+        
+        <div id="statusArea">
+            <p class="loading" id="loadingMsg">AI đang suy nghĩ và tạo câu hỏi (có thể mất 20-30s)...</p>
+            <p class="success" id="successMsg">✅ Đã tạo xong! Đang tải file xuống...</p>
+            <p class="error" id="errorMsg"></p>
+        </div>
+    </div>
+
+    <script src="js/excel-gen.js"></script>
+</body>
+</html>
