@@ -2,20 +2,79 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Tạo Ngân Hàng Câu Hỏi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Ngân Hàng Câu Hỏi AI</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+    
     <link rel="stylesheet" href="css/style.css"> 
     
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
+        <h2>🛡️ Tạo Ngân Hàng Câu Hỏi AI</h2>
+        <hr>
+        <div class="row">
+            <div class="six columns">
+                <label>Môn học</label>
+                <input class="u-full-width" type="text" id="mon_hoc" placeholder="VD: Khoa học tự nhiên">
+                
+                <label>Lớp</label>
+                <input class="u-full-width" type="text" id="lop" placeholder="VD: 8">
+                
+                <label>Bộ sách giáo khoa</label>
+                <select class="u-full-width" id="bo_sach">
+                    <option value="Kết nối tri thức với cuộc sống">Kết nối tri thức với cuộc sống</option>
+                    <option value="Chân trời sáng tạo">Chân trời sáng tạo</option>
+                    <option value="Cánh Diều">Cánh Diều</option>
+                </select>
+                
+                <label>Chủ đề bài học</label>
+                <textarea class="u-full-width" id="bai_hoc" placeholder="VD: Đo tốc độ"></textarea>
+            </div>
+            
+            <div class="six columns">
+                <label>Số lượng & Loại câu hỏi</label>
+                <div class="row">
+                    <div class="six columns">
+                        <label>TN 4 chọn 1</label>
+                        <input type="number" id="c1" value="4" min="0">
+                    </div>
+                    <div class="six columns">
+                        <label>Đúng/Sai</label>
+                        <input type="number" id="c2" value="0" min="0">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="six columns">
+                        <label>Điền khuyết</label>
+                        <input type="number" id="c3" value="0" min="0">
+                    </div>
+                    <div class="six columns">
+                        <label>Kéo thả</label>
+                        <input type="number" id="c4" value="0" min="0">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="six columns">
+                        <label>Câu chùm</label>
+                        <input type="number" id="c5" value="0" min="0">
+                    </div>
+                    <div class="six columns">
+                        <label>Tự luận</label>
+                        <input type="number" id="c6" value="0" min="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <button class="button-primary" id="btnGenerate">🚀 Tạo File Excel Ngay</button>
         
         <div id="statusArea">
-            <p class="loading" id="loadingMsg">AI đang suy nghĩ và tạo câu hỏi (có thể mất 20-30s)...</p>
-            <p class="success" id="successMsg">✅ Đã tạo xong! Đang tải file xuống...</p>
-            <p class="error" id="errorMsg"></p>
+            <p class="loading" id="loadingMsg" style="display: none;">AI đang suy nghĩ và tạo câu hỏi (có thể mất 20-30s)...</p>
+            <p class="success" id="successMsg" style="display: none;">✅ Đã tạo xong! Đang tải file xuống...</p>
+            <p class="error" id="errorMsg" style="display: none;"></p>
         </div>
     </div>
 
