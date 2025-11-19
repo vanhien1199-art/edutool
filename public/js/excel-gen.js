@@ -1,126 +1,156 @@
 // File: public/js/excel-gen.js
+// Phiên bản: Final Debug - Bắt lỗi chi tiết
 
 document.addEventListener('DOMContentLoaded', () => {
-    const btnGenerate = document.getElementById('btnGenerate');
+    // In log để xác nhận trình duyệt đã tải file mới
+    console.log("--- JS FILE LOADED: VERSION " + new Date().toISOString() + " ---");
     
+    const btnGenerate = document.getElementById('btnGenerate');
     if (btnGenerate) {
         btnGenerate.addEventListener('click', handleGenerate);
+    } else {
+        console.error("Lỗi: Không tìm thấy nút có ID 'btnGenerate' trong HTML.");
     }
 });
 
 async function handleGenerate() {
     const btn = document.getElementById('btnGenerate');
-    const loading = document.getElementById('loadingMsg');
+    const loading = document.getElementById('loadingMsg'); // Đảm bảo ID này khớp với HTML (status-msg hoặc loadingMsg)
     const success = document.getElementById('successMsg');
     const error = document.getElementById('errorMsg');
 
+    // Hàm hiển thị trạng thái UI an toàn (kiểm tra element tồn tại trước khi gọi)
+    const setDisplay = (el, style) => { if (el) el.style.display = style; };
+    const setText = (el, text) => { if (el) el.textContent = text; };
+
     // 1. Reset giao diện
-    if(loading) loading.style.display = 'block';
-    if(success) success.style.display = 'none';
-    if(error) {
-        error.style.display = 'none';
-        error.textContent = '';
-    }
-    btn.disabled = true;
+    setDisplay(loading, 'block');
+    setDisplay(success, 'none');
+    setDisplay(error, 'none');
+    setText(error, '');
+    if (btn) btn.disabled = true;
 
     // 2. Thu thập dữ liệu từ Form
-    const payload = {
-        mon_hoc: document.getElementById('mon_hoc').value.trim(),
-        lop: document.getElementById('lop').value.trim(),
-        bo_sach: document.getElementById('bo_sach').value,
-        bai_hoc: document.getElementById('bai_hoc').value.trim(),
-        c1: parseInt(document.getElementById('c1').value) || 0,
-        c2: parseInt(document.getElementById('c2').value) || 0,
-        c3: parseInt(document.getElementById('c3').value) || 0,
-        c4: parseInt(document.getElementById('c4').value) || 0,
-        c5: parseInt(document.getElementById('c5').value) || 0,
-        c6: parseInt(document.getElementById('c6').value) || 0,
-    };
+    try {
+        var payload = {
+            mon_hoc: getValue('mon_hoc'),
+            lop: getValue('lop'),
+            bo_sach: getValue('bo_sach'),
+            bai_hoc: getValue('bai_hoc'),
+            c1: getNum('c1'),
+            c2: getNum('c2'),
+            c3: getNum('c3'),
+            c4: getNum('c4'),
+            c5: getNum('c5'),
+            c6: getNum('c6'),
+        };
 
-    // Validate cơ bản
-    if (!payload.mon_hoc || !payload.bai_hoc) {
-        showError("Vui lòng nhập đầy đủ Môn học và Chủ đề bài học!");
-        if(loading) loading.style.display = 'none';
-        btn.disabled = false;
+        // Validate cơ bản
+        if (!payload.mon_hoc || !payload.bai_hoc) {
+            throw new Error("Vui lòng nhập đầy đủ 'Môn học' và 'Chủ đề bài học'!");
+        }
+
+    } catch (e) {
+        showError("Lỗi nhập liệu: " + e.message);
+        setDisplay(loading, 'none');
+        if (btn) btn.disabled = false;
         return;
     }
 
+    // 3. Gọi Backend (BẮT LỖI CHI TIẾT)
     try {
-        console.log("--- ĐANG CHẠY PHIÊN BẢN MỚI NHẤT (FIX URL) ---"); // <--- Dòng này để kiểm tra
-      const timestamp = new Date().getTime(); 
-        const response = await fetch(`/generateQuiz?v=${timestamp}`, {  // <--- Lưu ý dấu backtick ` (cạnh phím số 1)
+        console.log("--- Đang gửi yêu cầu lên Server ---");
+        
+        // Thêm tham số ?t=... để tránh Cache trình duyệt
+        const timestamp = new Date().getTime();
+        const apiUrl = `/generateQuiz?t=${timestamp}`; 
+
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
 
-        // ⚠️ DEBUG QUAN TRỌNG: Đọc text trước, parse sau để bắt lỗi
+        // Đọc phản hồi thô (Raw Text) để debug
         const rawText = await response.text();
-        console.log("DEBUG SERVER RESPONSE:", rawText); // Xem log này trong F12 -> Console
+        console.log("DEBUG SERVER RESPONSE:", rawText);
 
+        // Kiểm tra HTTP Status Code
         if (!response.ok) {
-            // Nếu server báo lỗi (404, 405, 500), ném lỗi ra ngay
-            throw new Error(`Lỗi Server (${response.status}): ${rawText}`);
+            let statusInfo = "";
+            if (response.status === 404) statusInfo = " (Sai đường dẫn API)";
+            if (response.status === 405) statusInfo = " (Sai phương thức - Method Not Allowed)";
+            if (response.status === 500) statusInfo = " (Lỗi nội bộ Server - API Key?)";
+            
+            throw new Error(`Server báo lỗi ${response.status}${statusInfo}: ${rawText.substring(0, 200)}...`);
         }
 
+        // Thử Parse JSON
         let data;
         try {
             data = JSON.parse(rawText);
         } catch (e) {
-            throw new Error("Server trả về dữ liệu không phải JSON hợp lệ: " + rawText);
+            throw new Error("Server trả về dữ liệu không phải JSON (Có thể là HTML lỗi). Nội dung: " + rawText.substring(0, 100));
         }
 
-        // Kiểm tra dữ liệu trả về
-        const finalContent = data.result || data.answer;
-        if (!finalContent) {
-            throw new Error("AI không trả về nội dung (field result/answer bị thiếu).");
+        // Kiểm tra nội dung dữ liệu
+        const content = data.result || data.answer || data.rawData;
+        if (!content) {
+            throw new Error("Kết quả JSON thiếu trường dữ liệu (result/answer). Full JSON: " + JSON.stringify(data));
         }
 
-        // 4. Xử lý tạo Excel (Client-Side)
-        createAndDownloadExcel(finalContent, payload);
-
-        if(success) success.style.display = 'block';
+        // 4. Xử lý tạo Excel
+        createAndDownloadExcel(content, payload);
+        
+        // Thành công
+        setDisplay(success, 'block');
 
     } catch (err) {
-        console.error("Lỗi:", err);
-        showError(`Có lỗi xảy ra: ${err.message}`);
+        console.error("Lỗi trong quá trình xử lý:", err);
+        showError(err.message);
     } finally {
-        if(loading) loading.style.display = 'none';
-        btn.disabled = false;
+        setDisplay(loading, 'none');
+        if (btn) btn.disabled = false;
     }
+}
+
+// --- Các hàm hỗ trợ ---
+
+function getValue(id) {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : "";
+}
+
+function getNum(id) {
+    const el = document.getElementById(id);
+    return el ? (parseInt(el.value) || 0) : 0;
 }
 
 function showError(msg) {
     const error = document.getElementById('errorMsg');
     if (error) {
-        error.textContent = msg;
+        error.textContent = "⚠️ Lỗi: " + msg;
         error.style.display = 'block';
     } else {
-        alert(msg);
+        alert("⚠️ Lỗi: " + msg);
     }
 }
 
 function createAndDownloadExcel(rawText, payload) {
-    // Làm sạch dữ liệu markdown
+    if (typeof XLSX === 'undefined') {
+        throw new Error("Thư viện SheetJS chưa được tải. Hãy kiểm tra kết nối mạng.");
+    }
+
+    // Làm sạch dữ liệu markdown (nếu AI trả về ```csv ... ```)
     const cleanText = rawText.replace(/```csv/g, "").replace(/```/g, "").trim();
     const lines = cleanText.split('\n');
     
     const finalData = [];
     const TOTAL_COLS = 22;
 
-    // --- TẠO HEADER ĐẶC BIỆT (Mô phỏng chính xác app.py) ---
-    
-    // Dòng 1: Cột H (index 7) là "IMPORT CÂU HỎI"
-    let row1 = new Array(TOTAL_COLS).fill("");
-    row1[7] = "IMPORT CÂU HỎI";
-    finalData.push(row1);
-
-    // Dòng 2: Cột H là cảnh báo
-    let row2 = new Array(TOTAL_COLS).fill("");
-    row2[7] = "(Chú ý: các cột bôi đỏ là bắt buộc)";
-    finalData.push(row2);
-
-    // Dòng 3: Header Chuẩn
+    // --- Header chuẩn ---
+    let row1 = new Array(TOTAL_COLS).fill(""); row1[7] = "IMPORT CÂU HỎI";
+    let row2 = new Array(TOTAL_COLS).fill(""); row2[7] = "(Chú ý: các cột bôi đỏ là bắt buộc)";
     const headers = [
         'STT', 'Loại câu hỏi', 'Độ khó', 'Mức độ nhận thức', 'Đơn vị kiến thức', 'Mức độ đánh giá',
         'Là câu hỏi con của câu hỏi chùm?', 'Nội dung câu hỏi', 'Đáp án đúng',
@@ -128,49 +158,37 @@ function createAndDownloadExcel(rawText, payload) {
         'Tags (phân cách nhau bằng dấu ;)', 'Giải thích', 'Đảo đáp án',
         'Tính điểm mỗi đáp án đúng', 'Nhóm đáp án theo từng chỗ trống'
     ];
-    finalData.push(headers);
+    
+    finalData.push(row1, row2, headers);
 
-    // --- XỬ LÝ DỮ LIỆU ---
+    // --- Parse từng dòng ---
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i].trim();
         if (!line) continue;
-
-        // Bỏ qua dòng header do AI tự sinh ra (nếu có)
-        if (line.includes("Loại câu hỏi") && line.includes("Độ khó")) continue;
+        if (line.includes("Loại câu hỏi") && line.includes("Độ khó")) continue; // Bỏ qua header lặp lại
 
         let parts = line.split('|');
 
-        // Đảm bảo tính toàn vẹn số lượng cột
+        // Chỉnh sửa số lượng cột cho đúng 22
         if (parts.length > TOTAL_COLS) {
-            parts = parts.slice(0, TOTAL_COLS); // Cắt bớt
+            parts = parts.slice(0, TOTAL_COLS);
         } else {
-            while (parts.length < TOTAL_COLS) {
-                parts.push(""); // Bù thêm
-            }
+            while (parts.length < TOTAL_COLS) parts.push("");
         }
 
-        // Kiểm tra cột STT (index 0) phải là số mới lấy
+        // Chỉ lấy dòng có STT là số
         if (!isNaN(parseInt(parts[0]))) {
             finalData.push(parts);
         }
     }
 
-    // --- XUẤT FILE BẰNG SHEETJS ---
-    if (typeof XLSX === 'undefined') {
-        showError("Lỗi: Thư viện SheetJS chưa được tải. Vui lòng kiểm tra kết nối mạng.");
-        return;
-    }
-
+    // --- Xuất File ---
     const ws = XLSX.utils.aoa_to_sheet(finalData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
 
-    // Đặt tên file: Mon_Lop_ThoiGian.xlsx
-    const timestamp = new Date().toISOString().slice(0,10);
-    const safeMonHoc = payload.mon_hoc.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    const fileName = `NHCH_${safeMonHoc}_lop${payload.lop}_${timestamp}.xlsx`;
+    const safeMon = payload.mon_hoc.replace(/[^a-z0-9]/gi, '_');
+    const fileName = `NHCH_${safeMon}_${new Date().getTime()}.xlsx`;
 
     XLSX.writeFile(wb, fileName);
 }
-
-
