@@ -45,33 +45,28 @@ async function handleGenerate() {
 
     try {
         // 3. Gọi Backend Cloudflare Function
-        // Lưu ý: Đường dẫn này phải khớp với file trong thư mục functions/
-        const response = await fetch('/generateQuiz', { // Hoặc '/generateQuiz' tùy tên file bạn đặt
+       try {
+        // Gọi đường dẫn chuẩn (Không có đuôi .js, không có /functions)
+        const response = await fetch('/generateQuiz', { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-const rawResponse = await response.text();
-        console.log("Server raw response:", rawResponse); // Xem log này trong F12
+
+        // ⚠️ DEBUG QUAN TRỌNG: Đọc text trước, parse sau
+        const rawText = await response.text();
+        console.log("DEBUG SERVER:", rawText); // Mở F12 -> Console để xem dòng này
 
         if (!response.ok) {
-            // Nếu lỗi server (500, 404...), in ra nội dung lỗi
-            throw new Error(`Server Error (${response.status}): ${rawResponse}`);
-        }
-
-        if (!rawResponse) {
-            throw new Error("Server trả về rỗng (Có thể do Timeout hoặc lỗi API Key).");
+            // Nếu server báo lỗi (404, 405, 500), ném lỗi ra ngay
+            throw new Error(`Lỗi Server (${response.status}): ${rawText}`);
         }
 
         let data;
         try {
-            data = JSON.parse(rawResponse);
+            data = JSON.parse(rawText);
         } catch (e) {
-            throw new Error("Server không trả về JSON hợp lệ: " + rawResponse);
-        }
-
-        if (!data.result && !data.answer) {
-             throw new Error('AI không trả về dữ liệu.');
+            throw new Error("Server trả về dữ liệu không phải JSON: " + rawText);
         }
 
         // Lấy text kết quả (hỗ trợ cả 2 biến result hoặc answer đề phòng bạn đổi tên)
@@ -172,5 +167,6 @@ function createAndDownloadExcel(rawText, payload) {
     XLSX.writeFile(wb, fileName);
 
 }
+
 
 
