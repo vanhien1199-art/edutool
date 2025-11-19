@@ -51,11 +51,23 @@ async function handleGenerate() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-
-        const data = await response.json();
+const rawResponse = await response.text();
+        console.log("Server raw response:", rawResponse); // Xem log này trong F12
 
         if (!response.ok) {
-            throw new Error(data.error || 'Lỗi không xác định từ Server');
+            // Nếu lỗi server (500, 404...), in ra nội dung lỗi
+            throw new Error(`Server Error (${response.status}): ${rawResponse}`);
+        }
+
+        if (!rawResponse) {
+            throw new Error("Server trả về rỗng (Có thể do Timeout hoặc lỗi API Key).");
+        }
+
+        let data;
+        try {
+            data = JSON.parse(rawResponse);
+        } catch (e) {
+            throw new Error("Server không trả về JSON hợp lệ: " + rawResponse);
         }
 
         if (!data.result && !data.answer) {
@@ -158,4 +170,5 @@ function createAndDownloadExcel(rawText, payload) {
     const fileName = `NHCH_${safeMonHoc}_lop${payload.lop}_${timestamp}.xlsx`;
 
     XLSX.writeFile(wb, fileName);
+
 }
