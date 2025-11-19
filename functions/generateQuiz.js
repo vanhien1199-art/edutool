@@ -199,7 +199,7 @@ QUY TẮC ĐIỀN DỮ LIỆU:
         `;
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-3-pro-preview" });
 
         const result = await model.generateContent(prompt_cua_ban);
         const response = await result.response;
@@ -216,3 +216,4 @@ QUY TẮC ĐIỀN DỮ LIỆU:
         });
     }
 }
+
