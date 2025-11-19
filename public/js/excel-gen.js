@@ -65,7 +65,7 @@ async function handleGenerate() {
         const timestamp = new Date().getTime();
         
         // QUAN TRỌNG: KHÔNG CÓ CHỮ 'functions' Ở ĐÂY
-        const apiUrl = `/generateQuiz?t=${timestamp}`; 
+        const apiUrl = `/api_v2?t=${timestamp}`; 
 
         console.log("URL GỌI LÀ:", apiUrl); // Xem dòng này trong Console F12
 
@@ -195,4 +195,5 @@ function createAndDownloadExcel(rawText, payload) {
 
     XLSX.writeFile(wb, fileName);
 }
+
 
