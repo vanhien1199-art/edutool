@@ -15,10 +15,12 @@ async function handleGenerate() {
     const error = document.getElementById('errorMsg');
 
     // 1. Reset giao diện
-    loading.style.display = 'block';
-    success.style.display = 'none';
-    error.style.display = 'none';
-    error.textContent = '';
+    if(loading) loading.style.display = 'block';
+    if(success) success.style.display = 'none';
+    if(error) {
+        error.style.display = 'none';
+        error.textContent = '';
+    }
     btn.disabled = true;
 
     // 2. Thu thập dữ liệu từ Form
@@ -38,24 +40,23 @@ async function handleGenerate() {
     // Validate cơ bản
     if (!payload.mon_hoc || !payload.bai_hoc) {
         showError("Vui lòng nhập đầy đủ Môn học và Chủ đề bài học!");
-        loading.style.display = 'none';
+        if(loading) loading.style.display = 'none';
         btn.disabled = false;
         return;
     }
 
     try {
         // 3. Gọi Backend Cloudflare Function
-       try {
-        // Gọi đường dẫn chuẩn (Không có đuôi .js, không có /functions)
+        // Đường dẫn chuẩn là /generateQuiz (tương ứng với file functions/generateQuiz.js)
         const response = await fetch('/generateQuiz', { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
 
-        // ⚠️ DEBUG QUAN TRỌNG: Đọc text trước, parse sau
+        // ⚠️ DEBUG QUAN TRỌNG: Đọc text trước, parse sau để bắt lỗi
         const rawText = await response.text();
-        console.log("DEBUG SERVER:", rawText); // Mở F12 -> Console để xem dòng này
+        console.log("DEBUG SERVER RESPONSE:", rawText); // Xem log này trong F12 -> Console
 
         if (!response.ok) {
             // Nếu server báo lỗi (404, 405, 500), ném lỗi ra ngay
@@ -66,30 +67,37 @@ async function handleGenerate() {
         try {
             data = JSON.parse(rawText);
         } catch (e) {
-            throw new Error("Server trả về dữ liệu không phải JSON: " + rawText);
+            throw new Error("Server trả về dữ liệu không phải JSON hợp lệ: " + rawText);
         }
 
-        // Lấy text kết quả (hỗ trợ cả 2 biến result hoặc answer đề phòng bạn đổi tên)
-        const rawText = data.result || data.answer;
+        // Kiểm tra dữ liệu trả về
+        const finalContent = data.result || data.answer;
+        if (!finalContent) {
+            throw new Error("AI không trả về nội dung (field result/answer bị thiếu).");
+        }
 
         // 4. Xử lý tạo Excel (Client-Side)
-        createAndDownloadExcel(rawText, payload);
+        createAndDownloadExcel(finalContent, payload);
 
-        success.style.display = 'block';
+        if(success) success.style.display = 'block';
 
     } catch (err) {
         console.error("Lỗi:", err);
         showError(`Có lỗi xảy ra: ${err.message}`);
     } finally {
-        loading.style.display = 'none';
+        if(loading) loading.style.display = 'none';
         btn.disabled = false;
     }
 }
 
 function showError(msg) {
     const error = document.getElementById('errorMsg');
-    error.textContent = msg;
-    error.style.display = 'block';
+    if (error) {
+        error.textContent = msg;
+        error.style.display = 'block';
+    } else {
+        alert(msg);
+    }
 }
 
 function createAndDownloadExcel(rawText, payload) {
@@ -142,14 +150,12 @@ function createAndDownloadExcel(rawText, payload) {
         }
 
         // Kiểm tra cột STT (index 0) phải là số mới lấy
-        // Logic: Nếu parse ra NaN thì bỏ qua dòng rác
         if (!isNaN(parseInt(parts[0]))) {
             finalData.push(parts);
         }
     }
 
     // --- XUẤT FILE BẰNG SHEETJS ---
-    // Kiểm tra thư viện
     if (typeof XLSX === 'undefined') {
         showError("Lỗi: Thư viện SheetJS chưa được tải. Vui lòng kiểm tra kết nối mạng.");
         return;
@@ -165,8 +171,4 @@ function createAndDownloadExcel(rawText, payload) {
     const fileName = `NHCH_${safeMonHoc}_lop${payload.lop}_${timestamp}.xlsx`;
 
     XLSX.writeFile(wb, fileName);
-
 }
-
-
-
