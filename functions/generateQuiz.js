@@ -19,7 +19,7 @@ export async function onRequest(context) {
 
         const genAI = new GoogleGenerativeAI(apiKey);
         // Sử dụng model flash để phản hồi nhanh, giảm nguy cơ timeout
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-3-pro-preview" });
 
         // --- ĐỊNH NGHĨA HEADER CHÍNH XÁC 22 CỘT (Dùng để đưa vào Prompt) ---
         const header_str = "STT|Loại câu hỏi|Độ khó|Mức độ nhận thức|Đơn vị kiến thức|Mức độ đánh giá|Là câu hỏi con của câu hỏi chùm?|Nội dung câu hỏi|Đáp án đúng|Đáp án 1|Đáp án 2|Đáp án 3|Đáp án 4|Đáp án 5|Đáp án 6|Đáp án 7|Đáp án 8|Tags (phân cách nhau bằng dấu ;)|Giải thích|Đảo đáp án|Tính điểm mỗi đáp án đúng|Nhóm đáp án theo từng chỗ trống";
@@ -199,4 +199,5 @@ QUY TẮC ĐIỀN DỮ LIỆU:
     } catch (error) {
         return new Response(JSON.stringify({ error: error.message }), { status: 500 });
     }
+
 }
