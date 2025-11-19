@@ -58,19 +58,22 @@ async function handleGenerate() {
     }
 
     // 3. Gọi Backend (BẮT LỖI CHI TIẾT)
-    try {
-        console.log("--- Đang gửi yêu cầu lên Server ---");
+  try {
+        console.log("--- ĐANG GỌI API ---");
         
-        // Thêm tham số ?t=... để tránh Cache trình duyệt
+        // TẠO URL CHỐNG CACHE (Thêm ?t= thời gian hiện tại)
         const timestamp = new Date().getTime();
+        
+        // QUAN TRỌNG: KHÔNG CÓ CHỮ 'functions' Ở ĐÂY
         const apiUrl = `/generateQuiz?t=${timestamp}`; 
+
+        console.log("URL GỌI LÀ:", apiUrl); // Xem dòng này trong Console F12
 
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-
         // Đọc phản hồi thô (Raw Text) để debug
         const rawText = await response.text();
         console.log("DEBUG SERVER RESPONSE:", rawText);
@@ -192,3 +195,4 @@ function createAndDownloadExcel(rawText, payload) {
 
     XLSX.writeFile(wb, fileName);
 }
+
