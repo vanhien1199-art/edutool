@@ -59,18 +59,21 @@ async function handleGenerate() {
 
     // 3. Gọi Backend (BẮT LỖI CHI TIẾT)
     try {
-        console.log("--- Đang gửi yêu cầu lên Server ---");
+        console.log("--- ĐANG GỌI API ---");
         
-        // Thêm tham số ?t=... để tránh Cache trình duyệt
+        // TẠO URL CHỐNG CACHE (Thêm ?t= thời gian hiện tại)
         const timestamp = new Date().getTime();
-        const apiUrl = `/generateQuiz?t=${timestamp}`; 
+        
+        // QUAN TRỌNG: KHÔNG CÓ CHỮ 'functions' Ở ĐÂY
+        const apiUrl = `/api_v2?t=${timestamp}`; 
+
+        console.log("URL GỌI LÀ:", apiUrl); // Xem dòng này trong Console F12
 
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-
         // Đọc phản hồi thô (Raw Text) để debug
         const rawText = await response.text();
         console.log("DEBUG SERVER RESPONSE:", rawText);
@@ -136,19 +139,24 @@ function showError(msg) {
     }
 }
 
+// File: public/js/excel-gen.js
+
+// ... (Các phần trên giữ nguyên) ...
+
 function createAndDownloadExcel(rawText, payload) {
     if (typeof XLSX === 'undefined') {
         throw new Error("Thư viện SheetJS chưa được tải. Hãy kiểm tra kết nối mạng.");
     }
 
-    // Làm sạch dữ liệu markdown (nếu AI trả về ```csv ... ```)
+    // 1. Làm sạch dữ liệu markdown
+    // Xóa ```csv, ```, và các dòng trống đầu đuôi
     const cleanText = rawText.replace(/```csv/g, "").replace(/```/g, "").trim();
     const lines = cleanText.split('\n');
     
     const finalData = [];
     const TOTAL_COLS = 22;
 
-    // --- Header chuẩn ---
+    // 2. Tạo Header chuẩn (Giữ nguyên cấu trúc App.py)
     let row1 = new Array(TOTAL_COLS).fill(""); row1[7] = "IMPORT CÂU HỎI";
     let row2 = new Array(TOTAL_COLS).fill(""); row2[7] = "(Chú ý: các cột bôi đỏ là bắt buộc)";
     const headers = [
@@ -161,28 +169,41 @@ function createAndDownloadExcel(rawText, payload) {
     
     finalData.push(row1, row2, headers);
 
-    // --- Parse từng dòng ---
+    // 3. Xử lý dữ liệu (BỘ LỌC MỚI MẠNH MẼ HƠN)
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i].trim();
+        
+        // Bỏ qua dòng rỗng
         if (!line) continue;
-        if (line.includes("Loại câu hỏi") && line.includes("Độ khó")) continue; // Bỏ qua header lặp lại
+
+        // --- FIX LỖI CỦA BẠN TẠI ĐÂY ---
+        // Nếu dòng này KHÔNG chứa dấu gạch đứng |, nghĩa là nó là văn bản rác (giải thích của AI)
+        // -> Bỏ qua ngay lập tức!
+        if (!line.includes('|')) continue;
+
+        // Bỏ qua dòng Header do AI tự sinh ra (nếu có)
+        if (line.includes("Loại câu hỏi") && line.includes("Độ khó")) continue; 
 
         let parts = line.split('|');
 
-        // Chỉnh sửa số lượng cột cho đúng 22
+        // Đảm bảo đủ 22 cột (Cắt thừa, bù thiếu)
         if (parts.length > TOTAL_COLS) {
             parts = parts.slice(0, TOTAL_COLS);
         } else {
             while (parts.length < TOTAL_COLS) parts.push("");
         }
 
-        // Chỉ lấy dòng có STT là số
-        if (!isNaN(parseInt(parts[0]))) {
+        // Kiểm tra cột STT (index 0) phải là số
+        // Ví dụ: "1" -> OK. "Phạm vi" -> Loại.
+        const stt = parseInt(parts[0]);
+        if (!isNaN(stt)) {
+            // Ép kiểu cột 1 về số nguyên để Excel hiển thị đẹp hơn
+            parts[0] = stt; 
             finalData.push(parts);
         }
     }
 
-    // --- Xuất File ---
+    // 4. Xuất File Excel
     const ws = XLSX.utils.aoa_to_sheet(finalData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
@@ -192,3 +213,4 @@ function createAndDownloadExcel(rawText, payload) {
 
     XLSX.writeFile(wb, fileName);
 }
+
