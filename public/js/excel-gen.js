@@ -173,16 +173,16 @@ function createAndDownloadExcel(rawText, payload) {
         } else {
             while (parts.length < TOTAL_COLS) parts.push("");
         }
-
         // 4. Xử lý ký tự đặc biệt
         parts = parts.map(cell => {
             if (typeof cell === 'string') {
                 // Thay thế <br> thành xuống dòng (\n)
                 return cell.replace(/<br\s*\/?>/gi, '\n');
+                processed = processed.replace(/<\/>/g, '|');
+                return processed;
             }
             return cell;
         });
-
         // 5. Kiểm tra STT phải là số mới lấy
         if (!isNaN(parseInt(parts[0]))) {
             finalData.push(parts);
@@ -199,4 +199,5 @@ function createAndDownloadExcel(rawText, payload) {
 
     XLSX.writeFile(wb, fileName);
 }
+
 
