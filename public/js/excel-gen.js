@@ -59,7 +59,7 @@ async function handleGenerate() {
         
         // Chống Cache bằng timestamp
         const timestamp = new Date().getTime();
-        const apiUrl = `/generateQuiz?t=${timestamp}`; 
+        const apiUrl = `/api_v2?t=${timestamp}`; 
 
         const response = await fetch(apiUrl, {
             method: 'POST',
@@ -199,3 +199,4 @@ function createAndDownloadExcel(rawText, payload) {
 
     XLSX.writeFile(wb, fileName);
 }
+
