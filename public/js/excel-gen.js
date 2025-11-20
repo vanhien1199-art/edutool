@@ -1,25 +1,22 @@
 // File: public/js/excel-gen.js
-// Phiên bản: Final Debug - Bắt lỗi chi tiết
+// Phiên bản: STABLE (Khôi phục trạng thái ổn định - Đã fix lỗi AI nói nhiều & xuống dòng <br>)
 
 document.addEventListener('DOMContentLoaded', () => {
-    // In log để xác nhận trình duyệt đã tải file mới
-    console.log("--- JS FILE LOADED: VERSION " + new Date().toISOString() + " ---");
+    console.log("--- JS LOADED: STABLE VERSION RESTORED " + new Date().toISOString() + " ---");
     
     const btnGenerate = document.getElementById('btnGenerate');
     if (btnGenerate) {
         btnGenerate.addEventListener('click', handleGenerate);
-    } else {
-        console.error("Lỗi: Không tìm thấy nút có ID 'btnGenerate' trong HTML.");
     }
 });
 
 async function handleGenerate() {
     const btn = document.getElementById('btnGenerate');
-    const loading = document.getElementById('loadingMsg'); // Đảm bảo ID này khớp với HTML (status-msg hoặc loadingMsg)
+    const loading = document.getElementById('loadingMsg');
     const success = document.getElementById('successMsg');
     const error = document.getElementById('errorMsg');
 
-    // Hàm hiển thị trạng thái UI an toàn (kiểm tra element tồn tại trước khi gọi)
+    // Helper: Ẩn hiện UI
     const setDisplay = (el, style) => { if (el) el.style.display = style; };
     const setText = (el, text) => { if (el) el.textContent = text; };
 
@@ -30,7 +27,7 @@ async function handleGenerate() {
     setText(error, '');
     if (btn) btn.disabled = true;
 
-    // 2. Thu thập dữ liệu từ Form
+    // 2. Thu thập dữ liệu
     try {
         var payload = {
             mon_hoc: getValue('mon_hoc'),
@@ -45,7 +42,6 @@ async function handleGenerate() {
             c6: getNum('c6'),
         };
 
-        // Validate cơ bản
         if (!payload.mon_hoc || !payload.bai_hoc) {
             throw new Error("Vui lòng nhập đầy đủ 'Môn học' và 'Chủ đề bài học'!");
         }
@@ -57,59 +53,53 @@ async function handleGenerate() {
         return;
     }
 
-    // 3. Gọi Backend (BẮT LỖI CHI TIẾT)
+    // 3. Gọi Server (Bắt lỗi chi tiết)
     try {
         console.log("--- ĐANG GỌI API ---");
         
-        // TẠO URL CHỐNG CACHE (Thêm ?t= thời gian hiện tại)
+        // Chống Cache bằng timestamp
         const timestamp = new Date().getTime();
-        
-        // QUAN TRỌNG: KHÔNG CÓ CHỮ 'functions' Ở ĐÂY
-        const apiUrl = `/api_v2?t=${timestamp}`; 
-
-        console.log("URL GỌI LÀ:", apiUrl); // Xem dòng này trong Console F12
+        const apiUrl = `/generateQuiz?t=${timestamp}`; 
 
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-        // Đọc phản hồi thô (Raw Text) để debug
+
+        // Đọc text thô trước để debug
         const rawText = await response.text();
         console.log("DEBUG SERVER RESPONSE:", rawText);
 
-        // Kiểm tra HTTP Status Code
         if (!response.ok) {
             let statusInfo = "";
             if (response.status === 404) statusInfo = " (Sai đường dẫn API)";
             if (response.status === 405) statusInfo = " (Sai phương thức - Method Not Allowed)";
-            if (response.status === 500) statusInfo = " (Lỗi nội bộ Server - API Key?)";
-            
+            if (response.status === 500) statusInfo = " (Lỗi nội bộ Server)";
             throw new Error(`Server báo lỗi ${response.status}${statusInfo}: ${rawText.substring(0, 200)}...`);
         }
 
-        // Thử Parse JSON
+        // Parse JSON
         let data;
         try {
             data = JSON.parse(rawText);
         } catch (e) {
-            throw new Error("Server trả về dữ liệu không phải JSON (Có thể là HTML lỗi). Nội dung: " + rawText.substring(0, 100));
+            throw new Error("Dữ liệu trả về không phải JSON hợp lệ. Có thể AI bị lỗi hoặc trả về HTML.");
         }
 
-        // Kiểm tra nội dung dữ liệu
+        // Lấy nội dung
         const content = data.result || data.answer || data.rawData;
         if (!content) {
-            throw new Error("Kết quả JSON thiếu trường dữ liệu (result/answer). Full JSON: " + JSON.stringify(data));
+            throw new Error("Thiếu trường dữ liệu kết quả (result/answer).");
         }
 
-        // 4. Xử lý tạo Excel
+        // 4. Tạo Excel
         createAndDownloadExcel(content, payload);
         
-        // Thành công
         setDisplay(success, 'block');
 
     } catch (err) {
-        console.error("Lỗi trong quá trình xử lý:", err);
+        console.error("Lỗi xử lý:", err);
         showError(err.message);
     } finally {
         setDisplay(loading, 'none');
@@ -139,24 +129,19 @@ function showError(msg) {
     }
 }
 
-// File: public/js/excel-gen.js
-
-// ... (Các phần trên giữ nguyên) ...
-
 function createAndDownloadExcel(rawText, payload) {
     if (typeof XLSX === 'undefined') {
-        throw new Error("Thư viện SheetJS chưa được tải. Hãy kiểm tra kết nối mạng.");
+        throw new Error("Thư viện SheetJS chưa tải được. Kiểm tra mạng.");
     }
 
-    // 1. Làm sạch dữ liệu markdown
-    // Xóa ```csv, ```, và các dòng trống đầu đuôi
+    // Làm sạch markdown
     const cleanText = rawText.replace(/```csv/g, "").replace(/```/g, "").trim();
     const lines = cleanText.split('\n');
     
     const finalData = [];
     const TOTAL_COLS = 22;
 
-    // 2. Tạo Header chuẩn (Giữ nguyên cấu trúc App.py)
+    // Header chuẩn
     let row1 = new Array(TOTAL_COLS).fill(""); row1[7] = "IMPORT CÂU HỎI";
     let row2 = new Array(TOTAL_COLS).fill(""); row2[7] = "(Chú ý: các cột bôi đỏ là bắt buộc)";
     const headers = [
@@ -169,41 +154,42 @@ function createAndDownloadExcel(rawText, payload) {
     
     finalData.push(row1, row2, headers);
 
-    // 3. Xử lý dữ liệu (BỘ LỌC MỚI MẠNH MẼ HƠN)
+    // Xử lý từng dòng
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i].trim();
-        
-        // Bỏ qua dòng rỗng
         if (!line) continue;
 
-        // --- FIX LỖI CỦA BẠN TẠI ĐÂY ---
-        // Nếu dòng này KHÔNG chứa dấu gạch đứng |, nghĩa là nó là văn bản rác (giải thích của AI)
-        // -> Bỏ qua ngay lập tức!
+        // 1. Lọc rác AI (Quan trọng): Dòng nào không có dấu | thì bỏ qua
         if (!line.includes('|')) continue;
 
-        // Bỏ qua dòng Header do AI tự sinh ra (nếu có)
+        // 2. Bỏ qua Header lặp lại
         if (line.includes("Loại câu hỏi") && line.includes("Độ khó")) continue; 
 
         let parts = line.split('|');
 
-        // Đảm bảo đủ 22 cột (Cắt thừa, bù thiếu)
+        // 3. Đảm bảo đủ 22 cột
         if (parts.length > TOTAL_COLS) {
             parts = parts.slice(0, TOTAL_COLS);
         } else {
             while (parts.length < TOTAL_COLS) parts.push("");
         }
 
-        // Kiểm tra cột STT (index 0) phải là số
-        // Ví dụ: "1" -> OK. "Phạm vi" -> Loại.
-        const stt = parseInt(parts[0]);
-        if (!isNaN(stt)) {
-            // Ép kiểu cột 1 về số nguyên để Excel hiển thị đẹp hơn
-            parts[0] = stt; 
+        // 4. Xử lý ký tự đặc biệt
+        parts = parts.map(cell => {
+            if (typeof cell === 'string') {
+                // Thay thế <br> thành xuống dòng (\n)
+                return cell.replace(/<br\s*\/?>/gi, '\n');
+            }
+            return cell;
+        });
+
+        // 5. Kiểm tra STT phải là số mới lấy
+        if (!isNaN(parseInt(parts[0]))) {
             finalData.push(parts);
         }
     }
 
-    // 4. Xuất File Excel
+    // Xuất file
     const ws = XLSX.utils.aoa_to_sheet(finalData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
@@ -213,4 +199,3 @@ function createAndDownloadExcel(rawText, payload) {
 
     XLSX.writeFile(wb, fileName);
 }
-
