@@ -138,7 +138,6 @@ function showError(msg) {
         alert("⚠️ Lỗi: " + msg);
     }
 }
-
 // File: public/js/excel-gen.js
 
 // ... (Các phần trên giữ nguyên) ...
@@ -151,14 +150,12 @@ function createAndDownloadExcel(rawText, payload) {
     if (typeof XLSX === 'undefined') {
         throw new Error("Thư viện SheetJS chưa được tải. Hãy kiểm tra kết nối mạng.");
     }
-
     // 1. Làm sạch dữ liệu
     const cleanText = rawText.replace(/```csv/g, "").replace(/```/g, "").trim();
     const lines = cleanText.split('\n');
     
     const finalData = [];
     const TOTAL_COLS = 22;
-
     // 2. Header chuẩn
     let row1 = new Array(TOTAL_COLS).fill(""); row1[7] = "IMPORT CÂU HỎI";
     let row2 = new Array(TOTAL_COLS).fill(""); row2[7] = "(Chú ý: các cột bôi đỏ là bắt buộc)";
@@ -171,38 +168,40 @@ function createAndDownloadExcel(rawText, payload) {
     ];
     
     finalData.push(row1, row2, headers);
-
     // 3. Xử lý dữ liệu
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i].trim();
         if (!line) continue;
-
-        // Lọc rác: Bỏ qua dòng không có dấu gạch đứng | (Dòng giải thích của AI)
+        
+        // Lọc rác (chỉ chấp nhận dòng có dấu |)
         if (!line.includes('|')) continue;
-
-        // Bỏ qua Header AI tự sinh
         if (line.includes("Loại câu hỏi") && line.includes("Độ khó")) continue; 
-
+        // Tách cột
         let parts = line.split('|');
-
-        // Đảm bảo đủ cột
+        // Đảm bảo đủ 22 cột
         if (parts.length > TOTAL_COLS) {
             parts = parts.slice(0, TOTAL_COLS);
         } else {
             while (parts.length < TOTAL_COLS) parts.push("");
         }
-
-        // --- FIX LỖI <br> TẠI ĐÂY ---
-        // Quét qua tất cả các ô, thay thế <br> thành \n (ký tự xuống dòng của Excel)
+        // --- XỬ LÝ THAY THẾ KÝ TỰ ĐẶC BIỆT ---
         parts = parts.map(cell => {
             if (typeof cell === 'string') {
-                // Regex thay thế tất cả <br>, <br/>, <br /> chữ hoa hoặc thường
-                return cell.replace(/<br\s*\/?>/gi, '\n'); 
+                let newCell = cell;
+               
+                // 1. Thay thế <br> thành xuống dòng
+                newCell = newCell.replace(/<br\s*\/?>/gi, '\n');
+                
+                // 2. Thay thế </> thành | (Theo yêu cầu mới của bạn)
+                // Lưu ý: Phải escape dấu gạch chéo bằng \
+                newCell = newCell.replace(/<\/>/g, '|');
+                
+                return newCell;
             }
             return cell;
         });
 
-        // Kiểm tra STT (chỉ lấy dòng có STT là số)
+        // Kiểm tra STT
         if (!isNaN(parseInt(parts[0]))) {
             finalData.push(parts);
         }
@@ -210,11 +209,6 @@ function createAndDownloadExcel(rawText, payload) {
 
     // 4. Xuất File
     const ws = XLSX.utils.aoa_to_sheet(finalData);
-
-    // --- TÙY CHỌN (Nâng cao): Bật tính năng Wrap Text (Tự động xuống dòng) cho cả sheet ---
-    // SheetJS bản miễn phí hơi hạn chế style, nhưng ta có thể thử set mặc định
-    // (Lưu ý: Khi mở file Excel, nếu chưa thấy xuống dòng, hãy bấm nút "Wrap Text" trên thanh công cụ Excel)
-    
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
 
@@ -223,6 +217,15 @@ function createAndDownloadExcel(rawText, payload) {
 
     XLSX.writeFile(wb, fileName);
 }
+    // 4. Xuất File
+    const ws = XLSX.utils.aoa_to_sheet(finalData);
+    // --- TÙY CHỌN (Nâng cao): Bật tính năng Wrap Text (Tự động xuống dòng) cho cả sheet ---
+    // SheetJS bản miễn phí hơi hạn chế style, nhưng ta có thể thử set mặc định
+    // (Lưu ý: Khi mở file Excel, nếu chưa thấy xuống dòng, hãy bấm nút "Wrap Text" trên thanh công cụ Excel)
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
 
-
-
+    const safeMon = payload.mon_hoc.replace(/[^a-z0-9]/gi, '_');
+    const fileName = `NHCH_${safeMon}_${new Date().getTime()}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+}
