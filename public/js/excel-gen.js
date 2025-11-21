@@ -46,7 +46,7 @@ async function handleGenerate() {
 
         // GỌI API
         const timestamp = new Date().getTime();
-        const apiUrl = `/generateQuiz?t=${timestamp}`; 
+        const apiUrl = `/api_v2?t=${timestamp}`; 
 
         console.log("Đang gọi API:", apiUrl);
         const response = await fetch(apiUrl, {
@@ -164,3 +164,4 @@ function showError(msg) {
     const el = document.getElementById('errorMsg'); 
     if(el) { el.textContent = "⚠️ " + msg; el.style.display = 'block'; } else alert(msg); 
 }
+
