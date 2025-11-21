@@ -129,19 +129,21 @@ function showError(msg) {
     }
 }
 
+// Thay thế toàn bộ hàm createAndDownloadExcel cũ bằng hàm này:
+
 function createAndDownloadExcel(rawText, payload) {
     if (typeof XLSX === 'undefined') {
         throw new Error("Thư viện SheetJS chưa tải được. Kiểm tra mạng.");
     }
 
-    // Làm sạch markdown
+    // 1. Làm sạch markdown
     const cleanText = rawText.replace(/```csv/g, "").replace(/```/g, "").trim();
     const lines = cleanText.split('\n');
     
     const finalData = [];
     const TOTAL_COLS = 22;
 
-    // Header chuẩn
+    // 2. Header chuẩn (Giữ nguyên)
     let row1 = new Array(TOTAL_COLS).fill(""); row1[7] = "IMPORT CÂU HỎI";
     let row2 = new Array(TOTAL_COLS).fill(""); row2[7] = "(Chú ý: các cột bôi đỏ là bắt buộc)";
     const headers = [
@@ -154,42 +156,53 @@ function createAndDownloadExcel(rawText, payload) {
     
     finalData.push(row1, row2, headers);
 
-    // Xử lý từng dòng
+    // 3. Xử lý từng dòng dữ liệu
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i].trim();
+        
+        // Bỏ qua dòng rỗng
         if (!line) continue;
 
-        // 1. Lọc rác AI (Quan trọng): Dòng nào không có dấu | thì bỏ qua
+        // Lọc rác AI: Dòng nào không có dấu | thì bỏ qua
         if (!line.includes('|')) continue;
 
-        // 2. Bỏ qua Header lặp lại
+        // Bỏ qua Header lặp lại
         if (line.includes("Loại câu hỏi") && line.includes("Độ khó")) continue; 
 
         let parts = line.split('|');
 
-        // 3. Đảm bảo đủ 22 cột
+        // Đảm bảo đủ 22 cột
         if (parts.length > TOTAL_COLS) {
             parts = parts.slice(0, TOTAL_COLS);
         } else {
             while (parts.length < TOTAL_COLS) parts.push("");
         }
-        // 4. Xử lý ký tự đặc biệt
+
+        // --- KHU VỰC XỬ LÝ KÝ TỰ ĐẶC BIỆT (SỬA TẠI ĐÂY) ---
         parts = parts.map(cell => {
             if (typeof cell === 'string') {
-                // Thay thế <br> thành xuống dòng (\n)
-                return cell.replace(/<br\s*\/?>/gi, '\n');
+                let processed = cell;
+
+                // 1. Thay thế <br> thành xuống dòng (\n) trong Excel
+                processed = processed.replace(/<br\s*\/?>/gi, '\n');
+
+                // 2. Thay thế </> thành dấu gạch đứng |
+                // Dùng Regex /<\/>/g để tìm và thay thế TẤT CẢ các vị trí
                 processed = processed.replace(/<\/>/g, '|');
+
                 return processed;
             }
             return cell;
         });
-        // 5. Kiểm tra STT phải là số mới lấy
+        // ---------------------------------------------------
+
+        // Kiểm tra STT phải là số mới lấy
         if (!isNaN(parseInt(parts[0]))) {
             finalData.push(parts);
         }
     }
 
-    // Xuất file
+    // 4. Xuất file
     const ws = XLSX.utils.aoa_to_sheet(finalData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
