@@ -56,8 +56,8 @@ export async function onRequest(context) {
             const { mon_hoc, lop, bo_sach, bai_hoc, c1, c2, c3, c4, c5, c6 } = body;
             const header_str = "STT|Loại câu hỏi|Độ khó|Mức độ nhận thức|Đơn vị kiến thức|Mức độ đánh giá|Là câu hỏi con của câu hỏi chùm?|Nội dung câu hỏi|Đáp án đúng|Đáp án 1|Đáp án 2|Đáp án 3|Đáp án 4|Đáp án 5|Đáp án 6|Đáp án 7|Đáp án 8|Tags (phân cách nhau bằng dấu ;)|Giải thích|Đảo đáp án|Tính điểm mỗi đáp án đúng|Nhóm đáp án theo từng chỗ trống";
             const prompt = `
-            Bạn là chuyên gia khảo thí quản lí dữ liệu cho hệ thống LMS (VNEDU) số 1 Việt Nam. Bạn am hiểu sâu sắc chương trình giáo dục phổ thông 2018. Nhiệm vụ chính của bạn là xây dựng ngân hàng câu hỏi bám sát bộ sách giáo khoa ${bo_sach} theo các chủ đề sau:
-    Chủ đề: "${bai_hoc}" - Môn ${mon_hoc} - Lớp ${lop}.
+            Bạn là chuyên gia khảo thí quản lí dữ liệu cho hệ thống LMS (VNEDU) số 1 Việt Nam. Bạn am hiểu sâu sắc chương trình giáo dục phổ thông 2018. Nhiệm vụ chính của bạn là Tạo ngân hàng câu hỏi trắc nghiệm từ SGK ${bo_sach}, Môn ${mon_hoc}, Lớp ${lop}, Chủ đề: "${bai_hoc}".
+            Số lượng: 1 lựa chọn:${c1}, Đ/S:${c2}, Điền khuyết:${c3}, Kéo thả:${c4}, Chùm:${c5}, Tự luận:${c6}.
     **Nội dung:** Đảm bảo tính chính xác, ngôn ngữ phù hợp với lứa tuổi học sinh và bám sát yêu cầu về phẩm chất năng lực trong chương trình.
     - Câu hỏi phải rõ ràng, chính xác, không đánh đố, ngôn ngữ chuẩn mực SGK.
 
@@ -72,18 +72,26 @@ TRƯỚC KHI TẠO CÂU HỎI, PHẢI THỰC HIỆN:
 1. **KIỂM TRA PHẠM VI LỚP HỌC CỤ THỂ:**
    - Môn ${mon_hoc} lớp ${lop} chỉ được phép chứa kiến thức ĐÚNG LỚP ĐÓ
    - TUYỆT ĐỐI KHÔNG lấy kiến thức của lớp cao hơn hoặc thấp hơn
+   - Ví dụ: "Khoa học tự nhiên lớp 8" → chỉ kiến thức LỚP 8
 2. **SO SÁNH VỚI CHƯƠNG TRÌNH GDPT 2018:**
    - Chỉ sử dụng nội dung Ban hành kèm theo Thông tư số 32/2018/TT-BGDĐT
+   - Đối chiếu chính xác phạm vi kiến thức cho từng lớp
 3. **QUY TẮC ĐÁNH GIÁ PHÙ HỢP:**
    ✅ CHẤP NHẬN: Chủ đề có trong chương trình CHÍNH KHÓA đúng lớp
-   ❌ TỪ CHỐI: Chủ đề thuộc lớp khác
+   ✅ CHẤP NHẬN: Chủ đề tương đương về nội dung nhưng dùng từ ngữ khác (cùng lớp)
+   ❌ TỪ CHỐI: Chủ đề thuộc lớp khác (cao hơn hoặc thấp hơn)
+   ❌ TỪ CHỐI: Chủ đề quá nâng cao, chuyên sâu so với chuẩn
+   ❌ TỪ CHỐI: Chủ đề không có trong khung chương trình
+   VÍ DỤ CỤ THỂ ĐỂ TRÁNH LỖI:
+- "Khoa học tự nhiên lớp 8 - Điện học" → CHỈ lấy kiến thức ĐIỆN HỌC LỚP 8
+- KHÔNG ĐƯỢC lấy kiến thức Điện học lớp 9, lớp 7, hoặc lớp 6
+- "Toán lớp 6 - Phân số" → CHỈ lấy kiến thức Phân số LỚP 6
+- KHÔNG ĐƯỢC lấy kiến thức Phân số lớp 7, 8, 9
 **QUYẾT ĐỊNH CUỐI CÙNG:**
 - Nếu "${bai_hoc}" KHÔNG thuộc phạm vi ${mon_hoc} lớp ${lop} theo GDPT 2018 → Chỉ trả về: "Bạn nhập chủ đề không có trong chương trình hiện hành"
 - Nếu thuộc chương trình ĐÚNG LỚP → Tiếp tục thực hiện các yêu cầu bên dưới
-
 YÊU CẦU SỐ LƯỢNG:
 - Một lựa chọn: ${c1} | Đúng/Sai: ${c2} | Điền khuyết: ${c3} | Kéo thả: ${c4} | Chùm: ${c5} | Tự luận: ${c6}
-
 QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
 1. Sử dụng dấu GẠCH ĐỨNG \`|\` làm ký tự ngăn cách giữa các cột. MỖI DÒNG PHẢI CÓ ĐÚNG 21 DẤU |.
 2. HEADER: ${header_str}
@@ -220,4 +228,5 @@ QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
 
     return new Response("✅ PAY-PER-USE API ACTIVE", { status: 200, headers: corsHeaders });
 }
+
 
