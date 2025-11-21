@@ -35,18 +35,35 @@
             <div class="six columns">
                 <label>Cấu trúc đề thi</label>
                 <div class="row">
-                    <div class="six columns"><label>TN 4 chọn 1</label><input type="number" id="c1" value="4"></div>
-                    <div class="six columns"><label>Đúng/Sai</label><input type="number" id="c2" value="0"></div>
+                    <div class="six columns">
+                        <label>TN 4 chọn 1 (Max: 20)</label>
+                        <input type="number" id="c1" value="4" min="0" max="20"> 
+                    </div>
+                    <div class="six columns">
+                        <label>Đúng/Sai (Max: 10)</label>
+                        <input type="number" id="c2" value="0" min="0" max="10"> 
+                    </div>
                 </div>
                 <div class="row">
-                    <div class="six columns"><label>Điền khuyết</label><input type="number" id="c3" value="0"></div>
-                    <div class="six columns"><label>Kéo thả</label><input type="number" id="c4" value="0"></div>
+                    <div class="six columns">
+                        <label>Điền khuyết (Max: 10)</label>
+                        <input type="number" id="c3" value="0" min="0" max="10">
+                    </div>
+                    <div class="six columns">
+                        <label>Kéo thả (Max: 10)</label>
+                        <input type="number" id="c4" value="0" min="0" max="10">
+                    </div>
                 </div>
                 <div class="row">
-                    <div class="six columns"><label>Câu chùm</label><input type="number" id="c5" value="0"></div>
-                    <div class="six columns"><label>Tự luận</label><input type="number" id="c6" value="0"></div>
+                    <div class="six columns">
+                        <label>Câu chùm (Max: 5)</label>
+                        <input type="number" id="c5" value="0" min="0" max="5">
+                    </div>
+                    <div class="six columns">
+                        <label>Tự luận (Max: 10)</label>
+                        <input type="number" id="c6" value="0" min="0" max="10">
+                    </div>
                 </div>
-            </div>
         </div>
 
         <div class="license-box">
@@ -78,4 +95,5 @@
     <script src="js/excel-gen.js"></script>
 </body>
 </html>
+
 
