@@ -186,9 +186,9 @@ function createAndDownloadExcel(rawText, payload) {
                 // 1. Thay thế <br> thành xuống dòng (\n) trong Excel
                 processed = processed.replace(/<br\s*\/?>/gi, '\n');
 
-                // 2. Thay thế </> thành dấu gạch đứng |
+                // 2. Thay thế ^ thành dấu gạch đứng |
                 // Dùng Regex /<\/>/g để tìm và thay thế TẤT CẢ các vị trí
-                processed = processed.replace(/<\/>/g, '|');
+                processed = processed.replace(/\^/g, '|');
 
                 return processed;
             }
@@ -212,5 +212,6 @@ function createAndDownloadExcel(rawText, payload) {
 
     XLSX.writeFile(wb, fileName);
 }
+
 
 
