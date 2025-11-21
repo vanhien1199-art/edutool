@@ -1,21 +1,6 @@
 // File: public/js/excel-gen.js
-// Phiên bản: COMMERCIAL + PREVIEW (Lưu dữ liệu, xem trước rồi mới tải)
-
-// Biến toàn cục để lưu dữ liệu sau khi AI trả về
-let GLOBAL_EXCEL_DATA = [];
-let GLOBAL_FILENAME = "";
-
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("--- CLIENT LOADED: PREVIEW VERSION ---");
-    
-    const btnGenerate = document.getElementById('btnGenerate');
-    if (btnGenerate) btnGenerate.addEventListener('click', handleGenerate);
-
-    const btnDownload = document.getElementById('btnDownload');
-    if (btnDownload) btnDownload.addEventListener('click', handleDownload);
-});
-
-// 1. HÀM XỬ LÝ CHÍNH: GỌI AI VÀ HIỂN THỊ PREVIEW
+// Cập nhật: Thêm tính năng giới hạn số lượng câu hỏi
+// 1. HÀM XỬ LÝ CHÍNH
 async function handleGenerate() {
     const btn = document.getElementById('btnGenerate');
     const loading = document.getElementById('loadingMsg');
@@ -25,7 +10,7 @@ async function handleGenerate() {
     // Reset UI
     if(loading) loading.style.display = 'block';
     if(error) error.style.display = 'none';
-    if(previewSection) previewSection.style.display = 'none'; // Ẩn preview cũ
+    if(previewSection) previewSection.style.display = 'none'; 
     if(btn) btn.disabled = true;
 
     try {
@@ -47,9 +32,32 @@ async function handleGenerate() {
             c5: parseInt(document.getElementById('c5').value)||0,
             c6: parseInt(document.getElementById('c6').value)||0
         };
+        // 🛑 KHU VỰC KIỂM TRA GIỚI HẠN (VALIDATION)    
+        // Cấu hình giới hạn cho từng loại (Bạn có thể sửa số ở đây)
+        const LIMITS = {
+            c1: 20, // Trắc nghiệm
+            c2: 10, // Đúng/Sai (Theo yêu cầu của bạn)
+            c3: 10, // Điền khuyết
+            c4: 10, // Kéo thả
+            c5: 5,  // Câu chùm (Vì câu chùm rất dài)
+            c6: 10  // Tự luận
+        };
+
+        // Kiểm tra từng loại, nếu vượt quá -> Báo lỗi ngay
+        if (payload.c1 > LIMITS.c1) throw new Error(`Quá nhiều câu Trắc nghiệm! Tối đa là ${LIMITS.c1} câu.`);
+        if (payload.c2 > LIMITS.c2) throw new Error(`Quá nhiều câu Đúng/Sai! Tối đa là ${LIMITS.c2} câu.`);
+        if (payload.c3 > LIMITS.c3) throw new Error(`Quá nhiều câu Điền khuyết! Tối đa là ${LIMITS.c3} câu.`);
+        if (payload.c4 > LIMITS.c4) throw new Error(`Quá nhiều câu Kéo thả! Tối đa là ${LIMITS.c4} câu.`);
+        if (payload.c5 > LIMITS.c5) throw new Error(`Quá nhiều câu Chùm! Tối đa là ${LIMITS.c5} câu.`);
+        if (payload.c6 > LIMITS.c6) throw new Error(`Quá nhiều câu Tự luận! Tối đa là ${LIMITS.c6} câu.`);
+
+        // Kiểm tra tổng số câu hỏi (Không cho phép nhập toàn số 0)
+        const totalQuestions = payload.c1 + payload.c2 + payload.c3 + payload.c4 + payload.c5 + payload.c6;
+        if (totalQuestions === 0) throw new Error("Vui lòng nhập số lượng câu hỏi cho ít nhất 1 loại!");
+        if (totalQuestions > 50) throw new Error("Tổng số câu hỏi quá lớn (>50). Vui lòng chia nhỏ để AI xử lý tốt nhất.");
 
         if (!payload.mon_hoc || !payload.bai_hoc) throw new Error("Thiếu Môn học hoặc Chủ đề!");
-
+    
         // 1c. Gọi API
         const timestamp = new Date().getTime();
         const apiUrl = `/api_v2?t=${timestamp}`; 
@@ -63,8 +71,8 @@ async function handleGenerate() {
 
         const rawText = await response.text();
         
-        // Xử lý lỗi từ Server
         if (response.status === 403) throw new Error("⛔ MÃ KÍCH HOẠT KHÔNG ĐÚNG / HẾT HẠN!");
+        if (response.status === 402) throw new Error("⛔ MÃ ĐÃ HẾT LƯỢT SỬ DỤNG. VUI LÒNG MUA THÊM!");
         if (!response.ok) throw new Error(`Lỗi Server ${response.status}: ${rawText}`);
 
         let data;
@@ -73,17 +81,14 @@ async function handleGenerate() {
         const content = data.result || data.answer;
         if (!content) throw new Error("AI không trả về dữ liệu.");
 
-        // 1d. Xử lý dữ liệu thành mảng Excel (nhưng chưa tải xuống)
+        // 1d. Xử lý và Hiện Preview
         processDataForPreview(content, payload);
-
-        // 1e. Hiển thị bảng xem trước
         renderPreviewTable();
         
-        // Hiện khung preview
-        if(previewSection) previewSection.style.display = 'block';
-        
-        // Cuộn xuống bảng
-        previewSection.scrollIntoView({ behavior: 'smooth' });
+        if(previewSection) {
+            previewSection.style.display = 'block';
+            previewSection.scrollIntoView({ behavior: 'smooth' });
+        }
 
     } catch (err) {
         console.error(err);
@@ -96,7 +101,6 @@ async function handleGenerate() {
         if(btn) btn.disabled = false;
     }
 }
-
 // 2. HÀM XỬ LÝ DỮ LIỆU (LƯU VÀO BIẾN TOÀN CỤC)
 function processDataForPreview(rawText, payload) {
     const cleanText = rawText.replace(/```csv/g, "").replace(/```/g, "").trim();
