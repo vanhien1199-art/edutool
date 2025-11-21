@@ -79,14 +79,21 @@
             <p class="error" id="errorMsg" style="display: none;"></p>
         </div>
 
-        <div id="previewSection">
-            <h4 style="text-align: center; color: #1a73e8;">📋 Xem Trước Dữ Liệu</h4>
-            <p style="text-align: center; font-style: italic;">Kiểm tra kỹ nội dung bên dưới trước khi tải về.</p>
+       <div id="previewSection">
+            <h4 style="text-align: center; color: #1a73e8; margin-bottom: 15px;">🎉 Đã tạo xong dữ liệu!</h4>
             
-            <div class="table-wrapper">
-                <table class="preview-table" id="dataTable">
-                    </table>
-            </div>
+            <details class="preview-dropdown" open>
+                <summary>📋 Bấm vào đây để Xem chi tiết / Thu gọn bảng dữ liệu</summary>
+                
+                <div class="table-wrapper">
+                    <table class="preview-table" id="dataTable">
+                        </table>
+                </div>
+            </details>
+
+            <p style="text-align: center; font-style: italic; color: #666; margin-top: 10px;">
+                (Bảng chỉ hiển thị 20 dòng đầu để xem trước. File tải về sẽ đầy đủ 100%)
+            </p>
 
             <button class="button-success" id="btnDownload">📥 TẢI FILE EXCEL (.XLSX)</button>
         </div>
@@ -95,5 +102,6 @@
     <script src="js/excel-gen.js"></script>
 </body>
 </html>
+
 
 
