@@ -1,5 +1,5 @@
 /* File: public/css/style.css */
-/* Phiên bản: BIG & CLEAR (Cỡ chữ to, dễ đọc) */
+/* Phiên bản: COLLAPSIBLE PREVIEW & RESPONSIVE TABLE */
 
 :root {
     --primary-color: #2563eb;
@@ -9,26 +9,22 @@
     --bg-color: #f3f4f6;
     --card-bg: #ffffff;
     --text-main: #111827;
-    --text-secondary: #4b5563;
     --border-color: #d1d5db;
-    --input-bg: #fff;
     --radius: 8px;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 /* 1. CẤU HÌNH CHUNG */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 16px; /* Cỡ chữ mặc định của trang */
+    font-size: 16px;
     line-height: 1.6;
     background-color: var(--bg-color);
     color: var(--text-main);
     margin: 0;
-    padding: 40px 20px;
+    padding: 20px;
 }
 
-/* 2. KHUNG CHÍNH */
 .container {
     background-color: var(--card-bg);
     max-width: 1000px;
@@ -44,92 +40,154 @@ h2 {
     font-weight: 800;
     text-align: center;
     margin-bottom: 1.5rem;
-    font-size: 2.25rem;
+    font-size: 2rem;
 }
 
-hr {
-    border: 0;
-    height: 1px;
-    background: #e5e7eb;
-    margin: 2rem 0;
+hr { border: 0; height: 1px; background: #e5e7eb; margin: 2rem 0; }
+
+/* 2. FORM & INPUT */
+label { font-weight: 700; margin-bottom: 8px; display: block; color: #374151; }
+
+input[type="text"], input[type="number"], select, textarea {
+    display: block; width: 100%; height: 50px; font-size: 16px;
+    padding: 10px 15px; color: #111827; background-color: #fff;
+    border: 1px solid #d1d5db; border-radius: var(--radius);
+    box-sizing: border-box; font-family: inherit;
+}
+textarea { height: 120px; resize: vertical; }
+input:focus, select:focus, textarea:focus {
+    border-color: var(--primary-color); outline: 0;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-/* 3. NHÃN (LABEL) - TO HƠN */
-label {
-    font-size: 16px; /* Tăng lên 16px (cũ là 15px) */
-    font-weight: 700; /* Đậm hơn */
-    color: #374151;
-    margin-bottom: 8px;
-    display: block;
+/* 3. LICENSE BOX */
+.license-box {
+    background: #eff6ff; border: 2px solid #bfdbfe;
+    border-radius: var(--radius); padding: 20px; margin: 30px 0;
 }
-
-/* 4. Ô NHẬP LIỆU (INPUT) - TO RÕ RÀNG */
-input[type="text"], 
-input[type="number"], 
-select, 
-textarea {
-    display: block;
-    width: 100%;
-    
-    /* Tăng chiều cao lên 55px (cũ là 48px) */
-    height: 55px; 
-    
-    /* Tăng cỡ chữ nhập vào lên 18px (Rất to) */
-    font-size: 18px; 
-    
-    padding: 10px 15px;
-    line-height: 1.5;
-    color: #111827; /* Màu chữ đen đậm */
-    background-color: #fff;
-    border: 2px solid #e5e7eb; /* Viền dày hơn 1 chút */
-    border-radius: var(--radius);
-    transition: all 0.2s ease-in-out;
-    box-sizing: border-box;
-    font-family: inherit;
+.license-box label { color: #1e40af; font-size: 1.1rem; }
+.license-box input {
+    border-color: #60a5fa; font-family: monospace; font-weight: 800;
+    color: #1e40af; font-size: 1.2rem; text-align: center; letter-spacing: 1px;
 }
+.license-box small { display: block; margin-top: 8px; color: #6b7280; text-align: center; }
 
-textarea {
-    height: 150px; /* Cao hơn */
-    min-height: 120px;
-    resize: vertical;
-    padding: 15px;
-}
-
-/* Hiệu ứng khi bấm vào */
-input:focus, 
-select:focus, 
-textarea:focus {
-    border-color: var(--primary-color);
-    outline: 0;
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
-}
-
-/* Placeholder to hơn */
-::placeholder {
-    color: #9ca3af;
-    font-size: 16px;
-}
-
-/* 5. NÚT BẤM */
+/* 4. BUTTONS */
 button {
+    display: flex; align-items: center; justify-content: center;
+    height: 55px; font-size: 1.1rem; font-weight: 700; text-transform: uppercase;
+    cursor: pointer; border: none; border-radius: var(--radius);
+    transition: all 0.2s; width: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.button-primary { background-color: var(--primary-color); color: white; }
+.button-primary:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
+.button-primary:disabled { background-color: #93c5fd; cursor: not-allowed; transform: none; }
+
+.button-success { background-color: var(--success-color); color: white; margin-top: 20px; }
+.button-success:hover { background-color: var(--success-hover); transform: translateY(-2px); }
+
+/* 5. DROPDOWN PREVIEW (MỚI - GỌN GÀNG HƠN) */
+#previewSection {
+    margin-top: 40px;
+    display: none; /* JS sẽ hiện cái này lên */
+}
+
+/* Thẻ Details tạo hiệu ứng đóng mở */
+details.preview-dropdown {
+    background-color: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+/* Thanh tiêu đề bấm vào để mở */
+details.preview-dropdown summary {
+    padding: 15px 20px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #374151;
+    background-color: #f9fafb;
+    cursor: pointer;
+    list-style: none; /* Ẩn tam giác mặc định */
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 0 24px;
-    height: 60px; /* Nút to hơn */
-    font-size: 18px; /* Chữ nút to hơn */
-    font-weight: 700;
-    text-transform: uppercase;
-    cursor: pointer;
-    border: none;
-    border-radius: var(--radius);
-    transition: all 0.2s;
-    width: 100%;
-    box-shadow: var(--shadow-sm);
+    justify-content: space-between;
+    transition: background 0.2s;
 }
 
-.button-primary {
-    background-color: var(--primary-color);
-    color: white;
+details.preview-dropdown summary:hover {
+    background-color: #f3f4f6;
 }
-.button-primary:hover
+
+/* Tạo mũi tên chỉ xuống tùy chỉnh */
+details.preview-dropdown summary::after {
+    content: "▼"; 
+    font-size: 0.8rem;
+    color: #6b7280;
+    transition: transform 0.3s;
+}
+
+details.preview-dropdown[open] summary::after {
+    transform: rotate(180deg); /* Xoay mũi tên khi mở */
+}
+
+/* Khung chứa bảng bên trong */
+.table-wrapper {
+    max-height: 500px; /* Giới hạn chiều cao, quá dài sẽ cuộn dọc */
+    overflow-y: auto;
+    overflow-x: auto; /* Cuộn ngang nếu tràn viền */
+    border-top: 1px solid #e5e7eb;
+}
+
+/* Bảng dữ liệu */
+table.preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    min-width: 800px; /* Đảm bảo bảng không bị co quá nhỏ */
+}
+
+table.preview-table th, 
+table.preview-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    vertical-align: top;
+    
+    /* QUAN TRỌNG: Chống tràn nội dung */
+    word-wrap: break-word;
+    max-width: 300px; /* Giới hạn chiều rộng mỗi cột */
+    white-space: normal; /* Cho phép xuống dòng */
+}
+
+table.preview-table th {
+    background-color: #f8fafc;
+    font-weight: 700;
+    color: #1e293b;
+    position: sticky; /* Cố định tiêu đề khi cuộn dọc */
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+table.preview-table tr:nth-child(even) { background-color: #fcfcfc; }
+table.preview-table tr:hover { background-color: #eff6ff; }
+
+/* 6. TRẠNG THÁI */
+#statusArea { margin-top: 25px; text-align: center; }
+.loading, .error, .success { padding: 12px 20px; border-radius: 8px; font-weight: 600; display: inline-block; }
+.loading { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+.loading::after { content: " ⏳"; animation: spin 1s infinite; }
+.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+.success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* MOBILE FIX */
+@media (max-width: 640px) {
+    .container { padding: 20px; margin: 10px; }
+    h2 { font-size: 1.5rem; }
+    .six.columns { width: 100%; margin-left: 0; }
+    table.preview-table th, table.preview-table td { font-size: 13px; padding: 8px; }
+}
