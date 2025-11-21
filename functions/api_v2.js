@@ -80,20 +80,20 @@ QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
 3. **ĐIỀN KHUYẾT**:
    - Nội dung: Dùng \`{{a}}\`, \`{{b}}\` (dấu ngoặc kép) để đánh dấu chỗ trống
    - Mỗi chỗ trống cung cấp 4 phương án để lựa chọn
-   - Cột 10 (Đáp án 1): Các phương án cho \`{{a}}\`, phân cách bằng dấu </> (VD: lực/Lực/trọng lượng/khối lượng)
-   - Cột 11 (Đáp án 2): Các phương án cho \`{{b}}\`, phân cách bằng dấu </> (VD: diện tích/Diện tích/thể tích/chiều dài)
+   - Cột 10 (Đáp án 1): Các phương án cho \`{{a}}\`, phân cách bằng dấu ^ (VD: lực^Lực^trọng lượng/khối lượng)
+   - Cột 11 (Đáp án 2): Các phương án cho \`{{b}}\`, phân cách bằng dấu ^(VD: diện tích^Diện tích^thể tích^chiều dài)
    - Cột 12 (Đáp án 3): ĐỂ TRỐNG
    - Cột 13 (Đáp án 4): ĐỂ TRỐNG
    - Cột 10 đến cột 19: ĐỂ TRỐNG HOÀN TOÀN (không ghi gì, kể cả dấu cách)
    - Cột 9 (Đáp án đúng): Ghi \`1,2\` (dùng dấu phẩy bình thường)
    - Ví dụ mẫu:
      STT|Loại câu hỏi|...|Nội dung câu hỏi|Đáp án đúng|Đáp án 1|Đáp án 2|Đáp án 3|Đáp án 4|...|
-     1|Điền khuyết|...|Áp suất là độ lớn của {{a}} trên một đơn vị {{b}}|1,2|áp lực</>lực</>trọng lực</>khối lượng|diện tích</>Diện tích</>bề mặt</>thể tích||||...|
+     1|Điền khuyết|...|Áp suất là độ lớn của {{a}} trên một đơn vị {{b}}|1,2|áp lực^lực^trọng lực^khối lượng|diện tích^Diện tích^bề mặt^thể tích||||...|
 4. **KÉO THẢ**:
    - Nội dung: Dùng \`{{a}}\`, \`{{b}}\` (dấu ngoặc kép) để đánh dấu chỗ trống
    - Cung cấp 4 phương án kéo thả cho mỗi chỗ trống
-   - Cột 10 (Đáp án 1): 4 phương án cho \`{{a}}\`, phân cách bằng dấu </>  (VD: F/P/A/m)
-   - Cột 11 (Đáp án 2): 4 phương án cho \`{{b}}\`, phân cách bằng dấu </>  (VD: S/V/h/t)
+   - Cột 10 (Đáp án 1): 4 phương án cho \`{{a}}\`, phân cách bằng dấu ^  (VD: F^P^A^m)
+   - Cột 11 (Đáp án 2): 4 phương án cho \`{{b}}\`, phân cách bằng dấu ^  (VD: S^V^h^t)
    - Cột 12 (Đáp án 3): ĐỂ TRỐNG
    - Cột 13 (Đáp án 4): ĐỂ TRỐNG
    - Cột 9 (Đáp án đúng): Ghi \`1,2\` (dùng dấu phẩy bình thường)
@@ -101,7 +101,7 @@ QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
    - Cột 22 (Nhóm đáp án): Ghi "Có" (phân nhóm đáp án)
    - Ví dụ mẫu:
      STT|Loại câu hỏi|...|Nội dung câu hỏi|Đáp án đúng|Đáp án 1|Đáp án 2|Đáp án 3|Đáp án 4|...|Nhóm đáp án|
-     2|Kéo thả|...|Công thức tính áp suất: p = {{a}} / {{b}}|1,2|F</>P</>A</>m|S</>V</>h</>t||||...|Có|
+     2|Kéo thả|...|Công thức tính áp suất: p = {{a}} / {{b}}|1,2|F^>P^A^m|S^V^h^t||||...|Có|
 5. **Câu chùm**: phải tuân thủ đúng các quy tắc sau (không sai dù chỉ 1 ký tự):
    Cấu trúc bắt buộc chỉ có 2 loại dòng
    Dòng 1: Câu dẫn (câu chùm chính)
