@@ -1,48 +1,60 @@
+// File: functions/api_v2.js
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function onRequest(context) {
     const { request, env } = context;
 
-    // Cấu hình Header để cho phép mọi nguồn truy cập (Fix lỗi CORS)
     const corsHeaders = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
     };
 
-    // 1. Xử lý Preflight (Trình duyệt kiểm tra đường truyền)
     if (request.method === "OPTIONS") {
         return new Response(null, { status: 204, headers: corsHeaders });
     }
 
-    // 2. Xử lý Kiểm tra (Khi bạn truy cập bằng trình duyệt để test)
-    if (request.method === "GET") {
-        return new Response("✅ KẾT NỐI THÀNH CÔNG! Function đang hoạt động. Hãy quay lại Web và bấm nút Tạo.", {
-            status: 200,
-            headers: corsHeaders
-        });
-    }
-
-    // 3. Xử lý Chính (POST - Khi bấm nút tạo Excel)
     if (request.method === "POST") {
         const apiKey = env.GOOGLE_API_KEY;
-        
-        if (!apiKey) {
-            return new Response(JSON.stringify({ error: "CRITICAL: Chưa có GOOGLE_API_KEY trong Settings!" }), {
-                status: 500,
-                headers: { ...corsHeaders, "Content-Type": "application/json" }
-            });
-        }
+        if (!apiKey) return new Response(JSON.stringify({ error: "Lỗi hệ thống: Thiếu API Key" }), { status: 500, headers: corsHeaders });
 
         try {
             const body = await request.json();
+
+            // ---------------------------------------------------------
+            // 🛡️ KHU VỰC KIỂM TRA MÃ BẢN QUYỀN (LICENSE CHECK)
+            // ---------------------------------------------------------
+            
+            // Danh sách các mã bạn đã bán (Bạn tự thêm vào đây)
+            // Mẹo: Đặt mã khó đoán một chút để tránh bị dò.
+            const VALID_KEYS = [
+                "VIP_2024_DEMO",     // Mã dùng thử
+                "GV_HOANG_A123",     // Khách hàng Hoàng
+                "TRUONG_NGUYENDU_99", // Trường Nguyễn Du
+                "ADMIN_MASTER_KEY"    // Mã của bạn
+            ];
+
+            const userKey = body.license_key;
+
+            // Kiểm tra xem mã người dùng nhập có nằm trong danh sách không
+            if (!userKey || !VALID_KEYS.includes(userKey)) {
+                // Nếu sai mã -> Trả về lỗi 403 (Cấm truy cập) ngay lập tức
+                // Không gọi Google AI -> Tiết kiệm tiền
+                return new Response(JSON.stringify({ 
+                    error: "⛔ MÃ KÍCH HOẠT SAI HOẶC ĐÃ HẾT HẠN. VUI LÒNG MUA MÃ MỚI!" 
+                }), { 
+                    status: 403, // 403 Forbidden
+                    headers: { ...corsHeaders, "Content-Type": "application/json" } 
+                });
+            }
+            // ---------------------------------------------------------
+
+
+            // NẾU MÃ ĐÚNG -> TIẾP TỤC CHẠY LOGIC CŨ
             const { mon_hoc, lop, bo_sach, bai_hoc, c1, c2, c3, c4, c5, c6 } = body;
 
-            // --- PROMPT GỐC CỦA BẠN (KHÔNG ĐỔI 1 CHỮ) ---
-            const header_str = "STT|Loại câu hỏi|Độ khó|Mức độ nhận thức|Đơn vị kiến thức|Mức độ đánh giá|Là câu hỏi con của câu hỏi chùm?|Nội dung câu hỏi|Đáp án đúng|Đáp án 1|Đáp án 2|Đáp án 3|Đáp án 4|Đáp án 5|Đáp án 6|Đáp án 7|Đáp án 8|Tags (phân cách nhau bằng dấu ;)|Giải thích|Đảo đáp án|Tính điểm mỗi đáp án đúng|Nhóm đáp án theo từng chỗ trống";
-
-            const prompt_cua_ban = `
-    Bạn là chuyên gia khảo thí quản lí dữ liệu cho hệ thống LMS (VNEDU) số 1 Việt Nam. Bạn am hiểu sâu sắc chương trình giáo dục phổ thông 2018. Nhiệm vụ chính của bạn là xây dựng ngân hàng câu hỏi bám sát bộ sách giáo khoa ${bo_sach} theo các chủ đề sau:
+            const prompt = `
+            Bạn là chuyên gia khảo thí quản lí dữ liệu cho hệ thống LMS (VNEDU) số 1 Việt Nam. Bạn am hiểu sâu sắc chương trình giáo dục phổ thông 2018. Nhiệm vụ chính của bạn là xây dựng ngân hàng câu hỏi bám sát bộ sách giáo khoa ${bo_sach} theo các chủ đề sau:
     Chủ đề: "${bai_hoc}" - Môn ${mon_hoc} - Lớp ${lop}.
     **Nội dung:** Đảm bảo tính chính xác, ngôn ngữ phù hợp với lứa tuổi học sinh và bám sát yêu cầu về phẩm chất năng lực trong chương trình.
     - Câu hỏi phải rõ ràng, chính xác, không đánh đố, ngôn ngữ chuẩn mực SGK.
@@ -179,25 +191,19 @@ QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
             `;
 
             const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-3-pro-preview" });
-
-            const result = await model.generateContent(prompt_cua_ban);
-            const response = await result.response;
-            const text = response.text();
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            
+            const result = await model.generateContent(prompt);
+            const text = result.response.text();
 
             return new Response(JSON.stringify({ result: text }), {
                 headers: { ...corsHeaders, "Content-Type": "application/json" }
             });
 
         } catch (error) {
-            return new Response(JSON.stringify({ error: "Lỗi AI Process: " + error.message }), {
-                status: 500,
-                headers: { ...corsHeaders, "Content-Type": "application/json" }
-            });
+            return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
         }
     }
 
-    // Nếu không phải GET/POST/OPTIONS -> Trả về 405 nhưng kèm headers CORS để debug
-    return new Response("Method Not Allowed (Chỉ hỗ trợ POST)", { status: 405, headers: corsHeaders });
+    return new Response("✅ API SECURITY ACTIVE", { status: 200, headers: corsHeaders });
 }
-
