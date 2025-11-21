@@ -4,16 +4,19 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 export async function onRequest(context) {
     const { request, env } = context;
 
+    // 1. Cấu hình CORS (Cho phép truy cập từ web của bạn)
     const corsHeaders = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
     };
 
+    // 2. Xử lý Preflight (Trình duyệt kiểm tra)
     if (request.method === "OPTIONS") {
         return new Response(null, { status: 204, headers: corsHeaders });
     }
 
+    // 3. Xử lý POST (Tạo câu hỏi)
     if (request.method === "POST") {
         const apiKey = env.GOOGLE_API_KEY;
         if (!apiKey) return new Response(JSON.stringify({ error: "Lỗi hệ thống: Thiếu API Key" }), { status: 500, headers: corsHeaders });
@@ -22,37 +25,33 @@ export async function onRequest(context) {
             const body = await request.json();
 
             // ---------------------------------------------------------
-            // 🛡️ KHU VỰC KIỂM TRA MÃ BẢN QUYỀN (LICENSE CHECK)
+            // 🛡️ KIỂM TRA MÃ BẢN QUYỀN (LICENSE CHECK)
             // ---------------------------------------------------------
-            
-            // Danh sách các mã bạn đã bán (Bạn tự thêm vào đây)
-            // Mẹo: Đặt mã khó đoán một chút để tránh bị dò.
             const VALID_KEYS = [
-                "VIP_2024_DEMO",     // Mã dùng thử
-                "GV_HOANG_A123",     // Khách hàng Hoàng
-                "TRUONG_NGUYENDU_99", // Trường Nguyễn Du
-                "ADMIN_MASTER_KEY"    // Mã của bạn
+                "VIP_2024_DEMO",     
+                "GV_HOANG_A123",     
+                "TRUONG_NGUYENDU_99",
+                "ADMIN_MASTER_KEY"    
             ];
 
             const userKey = body.license_key;
 
-            // Kiểm tra xem mã người dùng nhập có nằm trong danh sách không
             if (!userKey || !VALID_KEYS.includes(userKey)) {
-                // Nếu sai mã -> Trả về lỗi 403 (Cấm truy cập) ngay lập tức
-                // Không gọi Google AI -> Tiết kiệm tiền
                 return new Response(JSON.stringify({ 
-                    error: "⛔ MÃ KÍCH HOẠT SAI HOẶC ĐÃ HẾT HẠN. VUI LÒNG MUA MÃ MỚI!" 
+                    error: "⛔ MÃ KÍCH HOẠT SAI HOẶC ĐÃ HẾT HẠN!" 
                 }), { 
-                    status: 403, // 403 Forbidden
+                    status: 403, 
                     headers: { ...corsHeaders, "Content-Type": "application/json" } 
                 });
             }
             // ---------------------------------------------------------
 
-
-            // NẾU MÃ ĐÚNG -> TIẾP TỤC CHẠY LOGIC CŨ
             const { mon_hoc, lop, bo_sach, bai_hoc, c1, c2, c3, c4, c5, c6 } = body;
 
+            // ✅ SỬA LỖI: ĐỊNH NGHĨA BIẾN header_str BỊ THIẾU
+            const header_str = "STT|Loại câu hỏi|Độ khó|Mức độ nhận thức|Đơn vị kiến thức|Mức độ đánh giá|Là câu hỏi con của câu hỏi chùm?|Nội dung câu hỏi|Đáp án đúng|Đáp án 1|Đáp án 2|Đáp án 3|Đáp án 4|Đáp án 5|Đáp án 6|Đáp án 7|Đáp án 8|Tags (phân cách nhau bằng dấu ;)|Giải thích|Đảo đáp án|Tính điểm mỗi đáp án đúng|Nhóm đáp án theo từng chỗ trống";
+
+            // Prompt chi tiết
             const prompt = `
             Bạn là chuyên gia khảo thí quản lí dữ liệu cho hệ thống LMS (VNEDU) số 1 Việt Nam. Bạn am hiểu sâu sắc chương trình giáo dục phổ thông 2018. Nhiệm vụ chính của bạn là xây dựng ngân hàng câu hỏi bám sát bộ sách giáo khoa ${bo_sach} theo các chủ đề sau:
     Chủ đề: "${bai_hoc}" - Môn ${mon_hoc} - Lớp ${lop}.
@@ -191,7 +190,8 @@ QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
             `;
 
             const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-3-pro-preview" });
+            // Sử dụng model 1.5 flash
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
             
             const result = await model.generateContent(prompt);
             const text = result.response.text();
@@ -201,10 +201,10 @@ QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
             });
 
         } catch (error) {
+            // Trả về lỗi chi tiết để dễ debug
             return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
         }
     }
 
-    return new Response("✅ API SECURITY ACTIVE", { status: 200, headers: corsHeaders });
+    return new Response("✅ API ACTIVE", { status: 200, headers: corsHeaders });
 }
-
