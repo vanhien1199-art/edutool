@@ -93,20 +93,28 @@ TRƯỚC KHI TẠO CÂU HỎI, PHẢI THỰC HIỆN:
 YÊU CẦU SỐ LƯỢNG:
 - Một lựa chọn: ${c1} | Đúng/Sai: ${c2} | Điền khuyết: ${c3} | Kéo thả: ${c4} | Chùm: ${c5} | Tự luận: ${c6}
 QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
-1. Sử dụng dấu GẠCH ĐỨNG \`|\` làm ký tự ngăn cách giữa các cột. MỖI DÒNG PHẢI CÓ ĐÚNG 21 DẤU |.
+- Sử dụng dấu GẠCH ĐỨNG \`|\` làm ký tự ngăn cách giữa các cột (Delimiter). MỖI DÒNG PHẢI CÓ ĐÚNG 21 DẤU | (TỔNG 22 TRƯỜNG, KỂ CẢ TRỐNG Ở CUỐI).
+- TUYỆT ĐỐI KHÔNG dùng dấu phẩy \`,\` để ngăn cách các cột. Nếu cần phân cách trong nội dung, dùng ; hoặc ^.
+- Không được sử dụng dấu \`|\` bên trong nội dung câu hỏi hay đáp án (hãy thay bằng dấu phẩy hoặc gạch chéo ^).
+- Chỉ xuất ra HEADER + DỮ LIỆU text thô (bắt đầu từ STT=1), không code block markdown, không giải thích thêm. Mọi trường trống phải có | ở cuối dòng.
 2. HEADER: ${header_str}
-3. QUY TẮC ĐIỀN DỮ LIỆU: (Như prompt gốc)...
+3. QUY TẮC ĐIỀN DỮ LIỆU:
 1. **MỘT LỰA CHỌN**: \`Đáp án đúng\` ghi số (VD: \`2\`). Loại câu hỏi: "Một lựa chọn".
  - Cột 10 đến cột 19: ĐỂ TRỐNG HOÀN TOÀN (không ghi gì, kể cả dấu cách)
+ - Cột 20 (Đảo đáp án): ghi 1 hoặc để trống đều được
+ - Cột 21 (Tính điểm mỗi đáp án đúng): ĐỂ TRỐNG HOÀN TOÀN (không ghi gì, kể cả dấu cách)
+ - Cột 22 (Nhóm đáp án): ĐỂ TRỐNG HOÀN TOÀN (không ghi gì, kể cả dấu cách)
 2. **ĐÚNG/SAI**: \`Đáp án 1\`: "Đúng" | \`Đáp án 2\`: "Sai" | \`Đáp án đúng\`: \`1\` hoặc \`2\`.
 3. **ĐIỀN KHUYẾT**:
-   - Nội dung: Dùng \`{{a}}\`, \`{{b}}\` (dấu ngoặc kép) để đánh dấu chỗ trống
-   - Mỗi chỗ trống cung cấp 4 phương án để lựa chọn
-   - Cột 10 (Đáp án 1): Các phương án cho \`{{a}}\`, phân cách bằng dấu ^ (VD: lực^Lực^trọng lượng/khối lượng)
-   - Cột 11 (Đáp án 2): Các phương án cho \`{{b}}\`, phân cách bằng dấu ^(VD: diện tích^Diện tích^thể tích^chiều dài)
-   - Cột 12 (Đáp án 3): ĐỂ TRỐNG
-   - Cột 13 (Đáp án 4): ĐỂ TRỐNG
-   - Cột 10 đến cột 19: ĐỂ TRỐNG HOÀN TOÀN (không ghi gì, kể cả dấu cách)
+    - Nội dung: Dùng \`{{a}}\`, \`{{b}}\` (dấu ngoặc kép) để đánh dấu chỗ trống
+    - Mỗi chỗ trống cung cấp 4 phương án để lựa chọn
+    - Cột 10 (Đáp án 1): Các phương án cho \`{{a}}\`, phân cách bằng dấu ^ (VD: lực^Lực^trọng lượng/khối lượng)
+    - Cột 11 (Đáp án 2): Các phương án cho \`{{b}}\`, phân cách bằng dấu ^(VD: diện tích^Diện tích^thể tích^chiều dài)
+    - Cột 12 (Đáp án 3): ĐỂ TRỐNG
+    - Cột 13 (Đáp án 4): ĐỂ TRỐNG
+    - Cột 10 đến cột 19: ĐỂ TRỐNG HOÀN TOÀN (không ghi gì, kể cả dấu cách)
+    - Cột 20 (Đảo đáp án): ghi 1 hoặc để trống đều được
+    - Cột 21 (Tính điểm mỗi đáp án đúng): ĐỂ TRỐNG HOÀN TOÀN (không ghi gì, kể cả dấu cách)
    - Cột 9 (Đáp án đúng): Ghi \`1,2\` (dùng dấu phẩy bình thường)
    - Ví dụ mẫu:
      STT|Loại câu hỏi|...|Nội dung câu hỏi|Đáp án đúng|Đáp án 1|Đáp án 2|Đáp án 3|Đáp án 4|...|
@@ -120,6 +128,8 @@ QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
    - Cột 13 (Đáp án 4): ĐỂ TRỐNG
    - Cột 9 (Đáp án đúng): Ghi \`1,2\` (dùng dấu phẩy bình thường)
    - Cột 10 đến cột 19: ĐỂ TRỐNG HOÀN TOÀN (không ghi gì, kể cả dấu cách)
+   - Cột 20 (Đảo đáp án): ghi 1 hoặc để trống đều được
+   - Cột 21 (Tính điểm mỗi đáp án đúng): ĐỂ TRỐNG HOÀN TOÀN (không ghi gì, kể cả dấu cách)
    - Cột 22 (Nhóm đáp án): Ghi "Có" (phân nhóm đáp án)
    - Ví dụ mẫu:
      STT|Loại câu hỏi|...|Nội dung câu hỏi|Đáp án đúng|Đáp án 1|Đáp án 2|Đáp án 3|Đáp án 4|...|Nhóm đáp án|
@@ -228,5 +238,6 @@ QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
 
     return new Response("✅ PAY-PER-USE API ACTIVE", { status: 200, headers: corsHeaders });
 }
+
 
 
