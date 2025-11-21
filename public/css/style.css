@@ -1,62 +1,50 @@
 /* File: public/css/style.css */
-/* Phiên bản: ULTRA PROFESSIONAL (System UI Fonts + 16px Base) */
+/* Phiên bản: BIG & CLEAR (Cỡ chữ to, dễ đọc) */
 
 :root {
-    /* Bảng màu hiện đại (Lấy cảm hứng từ Tailwind CSS) */
-    --primary-color: #2563eb;       /* Xanh dương đậm, tin cậy */
+    --primary-color: #2563eb;
     --primary-hover: #1d4ed8;
-    --success-color: #10b981;       /* Xanh ngọc lục bảo, dịu mắt */
+    --success-color: #10b981;
     --success-hover: #059669;
-    --bg-color: #f3f4f6;            /* Xám rất nhạt */
+    --bg-color: #f3f4f6;
     --card-bg: #ffffff;
-    --text-main: #111827;           /* Đen than chì (không đen tuyền) */
-    --text-secondary: #4b5563;      /* Xám trung tính */
+    --text-main: #111827;
+    --text-secondary: #4b5563;
     --border-color: #d1d5db;
-    --input-bg: #f9fafb;
-    --radius: 8px;                  /* Bo góc chuẩn */
+    --input-bg: #fff;
+    --radius: 8px;
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-/* 1. CẤU HÌNH TYPOGRAPHY CHUYÊN NGHIỆP */
+/* 1. CẤU HÌNH CHUNG */
 body {
-    /* System UI Font Stack - Đẹp nhất trên mọi thiết bị */
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    
-    font-size: 16px; /* Cỡ chữ chuẩn, dễ đọc */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px; /* Cỡ chữ mặc định của trang */
     line-height: 1.6;
     background-color: var(--bg-color);
     color: var(--text-main);
     margin: 0;
     padding: 40px 20px;
-    -webkit-font-smoothing: antialiased; /* Làm mịn chữ trên Mac/iOS */
 }
 
-/* 2. CONTAINER (KHUNG CHÍNH) */
+/* 2. KHUNG CHÍNH */
 .container {
     background-color: var(--card-bg);
     max-width: 1000px;
     margin: 0 auto;
-    padding: 48px; /* Khoảng cách rộng rãi */
-    border-radius: 16px; /* Bo góc lớn hơn, hiện đại hơn */
+    padding: 40px;
+    border-radius: 16px;
     box-shadow: var(--shadow-md);
     border: 1px solid rgba(0,0,0,0.05);
 }
 
-/* 3. TIÊU ĐỀ */
 h2 {
     color: var(--primary-color);
-    font-weight: 800; /* Rất đậm */
+    font-weight: 800;
     text-align: center;
     margin-bottom: 1.5rem;
-    font-size: 2.25rem; /* ~36px */
-    letter-spacing: -0.025em; /* Khoảng cách chữ khít lại một chút cho sang */
-}
-
-h4 {
-    font-weight: 700;
-    color: var(--text-main);
-    margin-bottom: 1rem;
+    font-size: 2.25rem;
 }
 
 hr {
@@ -66,238 +54,82 @@ hr {
     margin: 2rem 0;
 }
 
-/* 4. FORM INPUTS (NHẬP LIỆU) */
+/* 3. NHÃN (LABEL) - TO HƠN */
 label {
-    font-size: 0.95rem; /* ~15px */
-    font-weight: 600;
-    color: var(--text-main);
-    margin-bottom: 0.5rem;
+    font-size: 16px; /* Tăng lên 16px (cũ là 15px) */
+    font-weight: 700; /* Đậm hơn */
+    color: #374151;
+    margin-bottom: 8px;
     display: block;
 }
 
+/* 4. Ô NHẬP LIỆU (INPUT) - TO RÕ RÀNG */
 input[type="text"], 
 input[type="number"], 
 select, 
 textarea {
     display: block;
     width: 100%;
-    padding: 0.75rem 1rem; /* Padding thoải mái */
-    font-size: 1rem; /* 16px - Bằng cỡ chữ body để không bị zoom trên iPhone */
+    
+    /* Tăng chiều cao lên 55px (cũ là 48px) */
+    height: 55px; 
+    
+    /* Tăng cỡ chữ nhập vào lên 18px (Rất to) */
+    font-size: 18px; 
+    
+    padding: 10px 15px;
     line-height: 1.5;
-    color: var(--text-main);
-    background-color: var(--input-bg);
-    background-clip: padding-box;
-    border: 1px solid var(--border-color);
+    color: #111827; /* Màu chữ đen đậm */
+    background-color: #fff;
+    border: 2px solid #e5e7eb; /* Viền dày hơn 1 chút */
     border-radius: var(--radius);
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    transition: all 0.2s ease-in-out;
     box-sizing: border-box;
     font-family: inherit;
 }
 
 textarea {
+    height: 150px; /* Cao hơn */
     min-height: 120px;
     resize: vertical;
+    padding: 15px;
 }
 
+/* Hiệu ứng khi bấm vào */
 input:focus, 
 select:focus, 
 textarea:focus {
-    background-color: #fff;
     border-color: var(--primary-color);
     outline: 0;
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); /* Hiệu ứng focus đẹp */
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
 }
 
-/* Placeholder màu nhạt hơn */
+/* Placeholder to hơn */
 ::placeholder {
     color: #9ca3af;
-    opacity: 1;
+    font-size: 16px;
 }
 
-/* 5. NÚT BẤM (BUTTONS) */
+/* 5. NÚT BẤM */
 button {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0.875rem 1.5rem; /* Nút to, dễ bấm */
-    font-size: 1rem;
-    font-weight: 600;
-    line-height: 1.25;
-    text-align: center;
-    white-space: nowrap;
-    vertical-align: middle;
+    padding: 0 24px;
+    height: 60px; /* Nút to hơn */
+    font-size: 18px; /* Chữ nút to hơn */
+    font-weight: 700;
+    text-transform: uppercase;
     cursor: pointer;
-    user-select: none;
-    border: 1px solid transparent;
+    border: none;
     border-radius: var(--radius);
-    transition: all 0.2s ease-in-out;
+    transition: all 0.2s;
     width: 100%;
     box-shadow: var(--shadow-sm);
 }
 
 .button-primary {
-    color: #ffffff;
     background-color: var(--primary-color);
+    color: white;
 }
-
-.button-primary:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-}
-
-.button-primary:disabled {
-    background-color: #93c5fd;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.button-success {
-    color: #ffffff;
-    background-color: var(--success-color);
-    margin-top: 1.5rem;
-}
-
-.button-success:hover {
-    background-color: var(--success-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-}
-
-/* 6. KHUNG MÃ BẢN QUYỀN (LICENSE BOX) */
-.license-box {
-    background: #eff6ff; /* Xanh dương cực nhạt */
-    border: 1px solid #bfdbfe;
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    margin: 2rem 0;
-}
-
-.license-box label {
-    color: #1e40af; /* Xanh dương đậm */
-    font-size: 1.1rem;
-    margin-bottom: 0.75rem;
-}
-
-.license-box input {
-    border-color: #60a5fa;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-weight: 700;
-    color: #1e40af;
-    letter-spacing: 0.05em;
-    font-size: 1.1rem;
-    text-align: center;
-    background-color: #fff;
-}
-
-.license-box small {
-    display: block;
-    margin-top: 0.5rem;
-    color: #6b7280;
-    font-style: italic;
-    text-align: center;
-}
-
-/* 7. BẢNG XEM TRƯỚC (PREVIEW TABLE) */
-#previewSection {
-    margin-top: 3rem;
-    display: none;
-}
-
-.table-wrapper {
-    overflow-x: auto;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
-}
-
-table.preview-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.95rem; /* Chữ trong bảng nhỏ hơn body một chút để chứa được nhiều thông tin */
-    background-color: #fff;
-}
-
-table.preview-table th,
-table.preview-table td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--border-color);
-    text-align: left;
-    vertical-align: top;
-}
-
-table.preview-table th {
-    background-color: #f9fafb;
-    font-weight: 600;
-    color: var(--text-main);
-    white-space: nowrap;
-    position: sticky;
-    top: 0;
-}
-
-table.preview-table tr:last-child td {
-    border-bottom: none;
-}
-
-table.preview-table tr:hover td {
-    background-color: #f9fafb; /* Hiệu ứng khi di chuột vào dòng */
-}
-
-/* 8. TRẠNG THÁI & LOADING */
-#statusArea {
-    margin-top: 1.5rem;
-    text-align: center;
-}
-
-.loading {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.75rem 1.5rem;
-    font-weight: 600;
-    color: #b45309;
-    background-color: #fef3c7;
-    border-radius: 9999px; /* Bo tròn viên thuốc */
-}
-
-.loading::after {
-    content: "";
-    width: 1rem;
-    height: 1rem;
-    margin-left: 0.75rem;
-    border: 2px solid currentColor;
-    border-right-color: transparent;
-    border-radius: 50%;
-    animation: spin 0.75s linear infinite;
-}
-
-.error {
-    display: inline-block;
-    padding: 1rem;
-    color: #991b1b;
-    background-color: #fef2f2;
-    border: 1px solid #fecaca;
-    border-radius: var(--radius);
-    text-align: left;
-}
-
-.success {
-    display: inline-block;
-    padding: 1rem;
-    color: #065f46;
-    background-color: #d1fae5;
-    border: 1px solid #a7f3d0;
-    border-radius: var(--radius);
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* 9. RESPONSIVE (MOBILE) */
-@media (max-width: 640px) {
-    body { padding: 20px 10px; }
-    .container { padding: 24px; }
-    h2 { font-size: 1.75rem; }
-    .six.columns { width: 100%; margin-left: 0; }
-    
-    /* Trên điện thoại, ô nhập liệu full màn hình */
-    input, select, textarea, button { font-size: 16px !important; }
-}
+.button-primary:hover
