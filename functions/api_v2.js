@@ -4,54 +4,58 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 export async function onRequest(context) {
     const { request, env } = context;
 
-    // 1. Cấu hình CORS (Cho phép truy cập từ web của bạn)
     const corsHeaders = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
     };
 
-    // 2. Xử lý Preflight (Trình duyệt kiểm tra)
     if (request.method === "OPTIONS") {
         return new Response(null, { status: 204, headers: corsHeaders });
     }
 
-    // 3. Xử lý POST (Tạo câu hỏi)
     if (request.method === "POST") {
         const apiKey = env.GOOGLE_API_KEY;
-        if (!apiKey) return new Response(JSON.stringify({ error: "Lỗi hệ thống: Thiếu API Key" }), { status: 500, headers: corsHeaders });
+        
+        // Kiểm tra xem đã kết nối KV chưa
+        if (!env.USER_CREDITS) {
+            return new Response(JSON.stringify({ error: "Lỗi hệ thống: Chưa cấu hình KV Database" }), { status: 500, headers: corsHeaders });
+        }
 
         try {
             const body = await request.json();
+            const userKey = body.license_key; // Lấy mã khách nhập
 
             // ---------------------------------------------------------
-            // 🛡️ KIỂM TRA MÃ BẢN QUYỀN (LICENSE CHECK)
+            // 🛡️ LOGIC TRỪ LƯỢT SỬ DỤNG (PAY PER USE)
             // ---------------------------------------------------------
-            const VALID_KEYS = [
-                "VIP_2024_DEMO",     
-                "GV_HOANG_A123",     
-                "TRUONG_NGUYENDU_99",
-                "ADMIN_MASTER_KEY"    
-            ];
-
-            const userKey = body.license_key;
-
-            if (!userKey || !VALID_KEYS.includes(userKey)) {
-                return new Response(JSON.stringify({ 
-                    error: "⛔ MÃ KÍCH HOẠT SAI HOẶC ĐÃ HẾT HẠN!" 
-                }), { 
-                    status: 403, 
-                    headers: { ...corsHeaders, "Content-Type": "application/json" } 
-                });
+            
+            if (!userKey) {
+                return new Response(JSON.stringify({ error: "Vui lòng nhập Mã kích hoạt!" }), { status: 403, headers: corsHeaders });
             }
+
+            // 1. Tra cứu mã trong "Sổ cái" (KV)
+            const creditStr = await env.USER_CREDITS.get(userKey);
+
+            // 2. Nếu mã không tồn tại (null)
+            if (creditStr === null) {
+                return new Response(JSON.stringify({ error: "⛔ MÃ KHÔNG TỒN TẠI! Vui lòng liên hệ Admin để mua." }), { status: 403, headers: corsHeaders });
+            }
+
+            // 3. Kiểm tra số dư
+            let currentCredit = parseInt(creditStr);
+            
+            if (currentCredit <= 0) {
+                return new Response(JSON.stringify({ error: "⛔ MÃ ĐÃ HẾT LƯỢT SỬ DỤNG (0). Vui lòng nạp thêm!" }), { status: 402, headers: corsHeaders });
+            }
+
             // ---------------------------------------------------------
-
+            // NẾU CÒN TIỀN -> GỌI AI TẠO NỘI DUNG
+            // ---------------------------------------------------------
+            
             const { mon_hoc, lop, bo_sach, bai_hoc, c1, c2, c3, c4, c5, c6 } = body;
-
-            // ✅ SỬA LỖI: ĐỊNH NGHĨA BIẾN header_str BỊ THIẾU
             const header_str = "STT|Loại câu hỏi|Độ khó|Mức độ nhận thức|Đơn vị kiến thức|Mức độ đánh giá|Là câu hỏi con của câu hỏi chùm?|Nội dung câu hỏi|Đáp án đúng|Đáp án 1|Đáp án 2|Đáp án 3|Đáp án 4|Đáp án 5|Đáp án 6|Đáp án 7|Đáp án 8|Tags (phân cách nhau bằng dấu ;)|Giải thích|Đảo đáp án|Tính điểm mỗi đáp án đúng|Nhóm đáp án theo từng chỗ trống";
 
-            // Prompt chi tiết
             const prompt = `
             Bạn là chuyên gia khảo thí quản lí dữ liệu cho hệ thống LMS (VNEDU) số 1 Việt Nam. Bạn am hiểu sâu sắc chương trình giáo dục phổ thông 2018. Nhiệm vụ chính của bạn là xây dựng ngân hàng câu hỏi bám sát bộ sách giáo khoa ${bo_sach} theo các chủ đề sau:
     Chủ đề: "${bai_hoc}" - Môn ${mon_hoc} - Lớp ${lop}.
@@ -190,22 +194,30 @@ QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
             `;
 
             const genAI = new GoogleGenerativeAI(apiKey);
-            // Sử dụng model 1.5 flash
             const model = genAI.getGenerativeModel({ model: "gemini-3-pro-preview" });
             
             const result = await model.generateContent(prompt);
             const text = result.response.text();
 
-            return new Response(JSON.stringify({ result: text }), {
+            // ---------------------------------------------------------
+            // 4. NẾU THÀNH CÔNG -> TRỪ 1 LƯỢT VÀ CẬP NHẬT LẠI SỔ CÁI
+            // ---------------------------------------------------------
+            const newCredit = currentCredit - 1;
+            await env.USER_CREDITS.put(userKey, newCredit.toString());
+
+            // Trả về kết quả kèm thông báo số dư còn lại (Để khách biết)
+            // (Lưu ý: Frontend hiện tại chưa hiển thị cái này, nhưng Backend đã gửi về)
+            return new Response(JSON.stringify({ 
+                result: text,
+                remaining: newCredit // Gửi số dư về để sau này hiển thị
+            }), {
                 headers: { ...corsHeaders, "Content-Type": "application/json" }
             });
 
         } catch (error) {
-            // Trả về lỗi chi tiết để dễ debug
             return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
         }
     }
 
-    return new Response("✅ API ACTIVE", { status: 200, headers: corsHeaders });
+    return new Response("✅ PAY-PER-USE API ACTIVE", { status: 200, headers: corsHeaders });
 }
-
