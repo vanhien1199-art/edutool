@@ -55,7 +55,6 @@ export async function onRequest(context) {
             
             const { mon_hoc, lop, bo_sach, bai_hoc, c1, c2, c3, c4, c5, c6 } = body;
             const header_str = "STT|Loại câu hỏi|Độ khó|Mức độ nhận thức|Đơn vị kiến thức|Mức độ đánh giá|Là câu hỏi con của câu hỏi chùm?|Nội dung câu hỏi|Đáp án đúng|Đáp án 1|Đáp án 2|Đáp án 3|Đáp án 4|Đáp án 5|Đáp án 6|Đáp án 7|Đáp án 8|Tags (phân cách nhau bằng dấu ;)|Giải thích|Đảo đáp án|Tính điểm mỗi đáp án đúng|Nhóm đáp án theo từng chỗ trống";
-
             const prompt = `
             Bạn là chuyên gia khảo thí quản lí dữ liệu cho hệ thống LMS (VNEDU) số 1 Việt Nam. Bạn am hiểu sâu sắc chương trình giáo dục phổ thông 2018. Nhiệm vụ chính của bạn là xây dựng ngân hàng câu hỏi bám sát bộ sách giáo khoa ${bo_sach} theo các chủ đề sau:
     Chủ đề: "${bai_hoc}" - Môn ${mon_hoc} - Lớp ${lop}.
@@ -116,7 +115,7 @@ QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
    - Cột 22 (Nhóm đáp án): Ghi "Có" (phân nhóm đáp án)
    - Ví dụ mẫu:
      STT|Loại câu hỏi|...|Nội dung câu hỏi|Đáp án đúng|Đáp án 1|Đáp án 2|Đáp án 3|Đáp án 4|...|Nhóm đáp án|
-     2|Kéo thả|...|Công thức tính áp suất: p = {{a}} / {{b}}|1,2|F^>P^A^m|S^V^h^t||||...|Có|
+     2|Kéo thả|...|Công thức tính áp suất: p = {{a}} / {{b}}|1,2|F^P^A^m|S^V^h^t||||...|Có|
 5. **Câu chùm**: phải tuân thủ đúng các quy tắc sau (không sai dù chỉ 1 ký tự):
    Cấu trúc bắt buộc chỉ có 2 loại dòng
    Dòng 1: Câu dẫn (câu chùm chính)
@@ -221,3 +220,4 @@ QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
 
     return new Response("✅ PAY-PER-USE API ACTIVE", { status: 200, headers: corsHeaders });
 }
+
