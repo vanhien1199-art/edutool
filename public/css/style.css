@@ -1,127 +1,170 @@
 /* File: public/css/style.css */
+/* Cập nhật: Giao diện chuyên nghiệp, Font to rõ ràng */
 
+/* 1. CẤU HÌNH CHUNG CHO TOÀN TRANG */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f7f6;
-    color: #333;
+    /* Phông chữ hiện đại, ưu tiên hiển thị đẹp trên mọi hệ điều hành */
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    
+    /* Tăng cỡ chữ cơ bản lên 16px (Chuẩn dễ đọc) */
+    font-size: 16px; 
+    
+    /* Tăng khoảng cách dòng để không bị rối mắt */
+    line-height: 1.6; 
+    
+    background-color: #f0f2f5; /* Màu nền xám nhẹ dịu mắt */
+    color: #333; /* Màu chữ đen xám, không đen tuyền để đỡ chói */
 }
 
+/* 2. KHUNG CHỨA CHÍNH (CONTAINER) */
 .container {
     background-color: #fff;
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-    margin-top: 40px;
-    margin-bottom: 40px;
-    border: 1px solid #e1e1e1;
+    padding: 40px; /* Khoảng cách lề trong rộng rãi */
+    border-radius: 12px; /* Bo góc mềm mại hơn */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08); /* Đổ bóng nhẹ tạo chiều sâu */
+    margin-top: 50px;
+    margin-bottom: 50px;
+    max-width: 960px;
 }
 
+/* 3. TIÊU ĐỀ */
 h2 {
-    color: #2c3e50;
+    color: #1a73e8; /* Màu xanh thương hiệu Google/Facebook tạo cảm giác tin cậy */
     font-weight: 700;
     text-align: center;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
+    font-size: 2.4rem; /* Tiêu đề to rõ */
+    letter-spacing: -0.5px;
 }
 
 hr {
-    margin-bottom: 30px;
-    border-top: 2px solid #f0f0f0;
+    margin-bottom: 35px;
+    border-top: 1px solid #e0e0e0;
 }
 
+/* 4. FORM NHẬP LIỆU (INPUT, SELECT, TEXTAREA) */
 input[type="text"], 
 input[type="number"], 
 select, 
 textarea {
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    height: 42px;
-    padding: 8px 12px;
-    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px; /* Bo góc input */
+    
+    /* Quan trọng: Tăng chiều cao và cỡ chữ cho input */
+    height: 48px; 
+    font-size: 16px; 
+    
+    padding: 10px 15px;
+    width: 100%;
+    background-color: #fafafa;
+    transition: all 0.2s ease;
+    box-sizing: border-box; /* Đảm bảo padding không làm vỡ khung */
 }
 
 textarea {
-    height: 80px;
+    height: 100px;
+    min-height: 100px;
     resize: vertical;
+    font-family: inherit; /* Giữ phông chữ đồng bộ */
 }
 
+/* Hiệu ứng khi bấm vào ô nhập liệu */
 input:focus, 
 select:focus, 
 textarea:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    border-color: #1a73e8;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2); /* Viền sáng xanh bao quanh */
     outline: 0;
 }
 
+/* 5. NHÃN (LABEL) */
 label {
     font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 6px;
+    font-size: 15px;
+    margin-bottom: 8px;
     color: #444;
+    display: block; /* Đảm bảo nằm dòng riêng */
 }
 
+/* 6. NÚT BẤM (BUTTON) */
 .button-primary {
-    background-color: #007bff !important;
-    border-color: #007bff !important;
-    font-size: 1.1rem;
+    background-color: #1a73e8 !important;
+    border-color: #1a73e8 !important;
+    font-size: 18px; /* Chữ trên nút to hơn */
     font-weight: 600;
-    height: 50px;
-    line-height: 50px;
+    height: 55px; /* Nút cao hơn */
+    line-height: 55px;
     width: 100%;
-    margin-top: 25px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0,123,255,0.2);
+    margin-top: 30px;
+    border-radius: 8px;
+    text-transform: none; /* Không bắt buộc viết hoa hết để trông thân thiện hơn */
+    box-shadow: 0 4px 6px rgba(26, 115, 232, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .button-primary:hover {
-    background-color: #0056b3 !important;
-    border-color: #0056b3 !important;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 10px rgba(0,123,255,0.3);
+    background-color: #1557b0 !important;
+    transform: translateY(-2px); /* Hiệu ứng nổi lên khi di chuột */
+    box-shadow: 0 6px 12px rgba(26, 115, 232, 0.4);
 }
 
 .button-primary:disabled {
-    background-color: #b0c4de !important;
-    border-color: #b0c4de !important;
+    background-color: #9dbcf0 !important;
+    border-color: #9dbcf0 !important;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
 }
 
-/* Thông báo trạng thái */
+/* 7. THÔNG BÁO TRẠNG THÁI */
 #statusArea {
-    margin-top: 25px;
+    margin-top: 30px;
     text-align: center;
+    font-size: 16px;
     font-weight: 500;
-    min-height: 30px;
 }
 
 .loading {
-    color: #e67e22;
+    color: #f39c12;
+    background-color: #fef9e7;
+    padding: 15px;
+    border-radius: 8px;
+    display: inline-block;
+    border: 1px solid #fdebd0;
 }
+
 .loading::after {
     content: " ⏳";
-    animation: spin 2s linear infinite; 
+    animation: spin 1.5s linear infinite; 
 }
 
 .success {
-    color: #27ae60;
-    background-color: #e8f8f5;
-    padding: 10px;
-    border-radius: 6px;
+    color: #155724;
+    background-color: #d4edda;
+    padding: 15px 25px;
+    border-radius: 8px;
+    border: 1px solid #c3e6cb;
     display: inline-block;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .error {
-    color: #c0392b;
-    background-color: #fce4e4;
-    padding: 10px;
-    border-radius: 6px;
+    color: #721c24;
+    background-color: #f8d7da;
+    padding: 15px 25px;
+    border-radius: 8px;
+    border: 1px solid #f5c6cb;
     display: inline-block;
 }
 
+/* Animation xoay cho icon loading */
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* Responsive cho điện thoại */
 @media (max-width: 550px) {
-    .container { padding: 20px; margin-top: 20px; }
+    .container { padding: 20px; margin-top: 10px; }
+    h2 { font-size: 1.8rem; }
     .six.columns { width: 100%; margin-left: 0; }
+    .button-primary { font-size: 16px; }
 }
