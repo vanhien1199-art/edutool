@@ -1,12 +1,12 @@
 // File: public/js/excel-gen.js
-// Phiên bản: COMMERCIAL + PREVIEW (Lưu dữ liệu, xem trước rồi mới tải)
+// Phiên bản: COMMERCIAL + PREVIEW + LIMITS (Đã thêm kiểm tra giới hạn)
 
 // Biến toàn cục để lưu dữ liệu sau khi AI trả về
 let GLOBAL_EXCEL_DATA = [];
 let GLOBAL_FILENAME = "";
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("--- CLIENT LOADED: PREVIEW VERSION ---");
+    console.log("--- CLIENT LOADED: PREVIEW VERSION WITH LIMITS ---");
     
     const btnGenerate = document.getElementById('btnGenerate');
     if (btnGenerate) btnGenerate.addEventListener('click', handleGenerate);
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnDownload) btnDownload.addEventListener('click', handleDownload);
 });
 
-// 1. HÀM XỬ LÝ CHÍNH: GỌI AI VÀ HIỂN THỊ PREVIEW
+// 1. HÀM XỬ LÝ CHÍNH: KIỂM TRA GIỚI HẠN -> GỌI AI -> HIỆN PREVIEW
 async function handleGenerate() {
     const btn = document.getElementById('btnGenerate');
     const loading = document.getElementById('loadingMsg');
@@ -48,7 +48,45 @@ async function handleGenerate() {
             c6: parseInt(document.getElementById('c6').value)||0
         };
 
-        if (!payload.mon_hoc || !payload.bai_hoc) throw new Error("Thiếu Môn học hoặc Chủ đề!");
+        // ------------------------------------------------------------------
+        // 🛑 BẮT ĐẦU PHẦN KIỂM TRA GIỚI HẠN (VALIDATION) - MỚI THÊM
+        // ------------------------------------------------------------------
+        
+        // Cấu hình giới hạn tối đa cho từng loại (Khớp với file HTML của bạn)
+        const LIMITS = {
+            c1: 20, // Trắc nghiệm 4 chọn 1
+            c2: 10, // Đúng/Sai
+            c3: 10, // Điền khuyết
+            c4: 10, // Kéo thả
+            c5: 5,  // Câu chùm
+            c6: 10  // Tự luận
+        };
+
+        // Kiểm tra từng loại câu hỏi
+        if (payload.c1 > LIMITS.c1) throw new Error(`Quá nhiều câu Trắc nghiệm! Tối đa cho phép là ${LIMITS.c1} câu.`);
+        if (payload.c2 > LIMITS.c2) throw new Error(`Quá nhiều câu Đúng/Sai! Tối đa cho phép là ${LIMITS.c2} câu.`);
+        if (payload.c3 > LIMITS.c3) throw new Error(`Quá nhiều câu Điền khuyết! Tối đa cho phép là ${LIMITS.c3} câu.`);
+        if (payload.c4 > LIMITS.c4) throw new Error(`Quá nhiều câu Kéo thả! Tối đa cho phép là ${LIMITS.c4} câu.`);
+        if (payload.c5 > LIMITS.c5) throw new Error(`Quá nhiều câu Chùm! Tối đa cho phép là ${LIMITS.c5} câu.`);
+        if (payload.c6 > LIMITS.c6) throw new Error(`Quá nhiều câu Tự luận! Tối đa cho phép là ${LIMITS.c6} câu.`);
+
+        // Kiểm tra tổng số lượng (Tránh gửi 0 câu hoặc quá nhiều gây timeout)
+        const totalQuestions = payload.c1 + payload.c2 + payload.c3 + payload.c4 + payload.c5 + payload.c6;
+        
+        if (totalQuestions === 0) {
+            throw new Error("Vui lòng nhập số lượng cho ít nhất 1 loại câu hỏi!");
+        }
+        
+        // Giới hạn tổng an toàn (Ví dụ: 60 câu) để tránh Cloudflare Timeout
+        if (totalQuestions > 65) {
+            throw new Error(`Tổng số câu hỏi (${totalQuestions}) quá lớn. Vui lòng tạo ít hơn 65 câu mỗi lần để hệ thống xử lý tốt nhất.`);
+        }
+
+        if (!payload.mon_hoc || !payload.bai_hoc) throw new Error("Thiếu thông tin Môn học hoặc Chủ đề!");
+
+        // ------------------------------------------------------------------
+        // ✅ KẾT THÚC KIỂM TRA - NẾU OK MỚI CHẠY TIẾP
+        // ------------------------------------------------------------------
 
         // 1c. Gọi API
         const timestamp = new Date().getTime();
@@ -63,8 +101,9 @@ async function handleGenerate() {
 
         const rawText = await response.text();
         
-        // Xử lý lỗi từ Server
-        if (response.status === 403) throw new Error("⛔ MÃ KÍCH HOẠT KHÔNG ĐÚNG / HẾT HẠN!");
+        // Xử lý các lỗi từ Server trả về
+        if (response.status === 403) throw new Error("⛔ MÃ KÍCH HOẠT SAI HOẶC KHÔNG TỒN TẠI!");
+        if (response.status === 402) throw new Error("⛔ MÃ ĐÃ HẾT LƯỢT SỬ DỤNG. VUI LÒNG MUA THÊM!");
         if (!response.ok) throw new Error(`Lỗi Server ${response.status}: ${rawText}`);
 
         let data;
@@ -73,7 +112,7 @@ async function handleGenerate() {
         const content = data.result || data.answer;
         if (!content) throw new Error("AI không trả về dữ liệu.");
 
-        // 1d. Xử lý dữ liệu thành mảng Excel (nhưng chưa tải xuống)
+        // 1d. Xử lý dữ liệu thành mảng Excel
         processDataForPreview(content, payload);
 
         // 1e. Hiển thị bảng xem trước
@@ -88,6 +127,7 @@ async function handleGenerate() {
     } catch (err) {
         console.error(err);
         if(error) { 
+            // Hiển thị lỗi rõ ràng cho người dùng
             error.innerHTML = `<strong>⚠️ ${err.message}</strong>`; 
             error.style.display = 'block'; 
         }
@@ -156,7 +196,6 @@ function renderPreviewTable() {
     table.innerHTML = ""; // Xóa cũ
 
     // Chỉ hiển thị tối đa 10 dòng dữ liệu đầu tiên để xem trước cho gọn
-    // (Vẫn tải xuống đủ 100%)
     const displayLimit = 20; 
     const dataToShow = GLOBAL_EXCEL_DATA.slice(3); // Bỏ 3 dòng header rỗng đầu tiên để hiển thị cho đẹp
 
