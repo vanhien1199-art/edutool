@@ -131,6 +131,8 @@ function showError(msg) {
 
 // Thay thế toàn bộ hàm createAndDownloadExcel cũ bằng hàm này:
 
+// File: public/js/excel-gen.js
+
 function createAndDownloadExcel(rawText, payload) {
     if (typeof XLSX === 'undefined') {
         throw new Error("Thư viện SheetJS chưa tải được. Kiểm tra mạng.");
@@ -143,7 +145,7 @@ function createAndDownloadExcel(rawText, payload) {
     const finalData = [];
     const TOTAL_COLS = 22;
 
-    // 2. Header chuẩn (Giữ nguyên)
+    // 2. Header chuẩn
     let row1 = new Array(TOTAL_COLS).fill(""); row1[7] = "IMPORT CÂU HỎI";
     let row2 = new Array(TOTAL_COLS).fill(""); row2[7] = "(Chú ý: các cột bôi đỏ là bắt buộc)";
     const headers = [
@@ -156,14 +158,12 @@ function createAndDownloadExcel(rawText, payload) {
     
     finalData.push(row1, row2, headers);
 
-    // 3. Xử lý từng dòng dữ liệu
+    // 3. Xử lý từng dòng
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i].trim();
-        
-        // Bỏ qua dòng rỗng
         if (!line) continue;
 
-        // Lọc rác AI: Dòng nào không có dấu | thì bỏ qua
+        // Lọc rác AI (Dòng không có dấu | thì bỏ qua)
         if (!line.includes('|')) continue;
 
         // Bỏ qua Header lặp lại
@@ -178,25 +178,27 @@ function createAndDownloadExcel(rawText, payload) {
             while (parts.length < TOTAL_COLS) parts.push("");
         }
 
-        // --- KHU VỰC XỬ LÝ KÝ TỰ ĐẶC BIỆT (SỬA TẠI ĐÂY) ---
+        // --- XỬ LÝ KÝ TỰ ĐẶC BIỆT ---
         parts = parts.map(cell => {
             if (typeof cell === 'string') {
                 let processed = cell;
 
-                // 1. Thay thế <br> thành xuống dòng (\n) trong Excel
+                // 1. Thay thế <br> thành xuống dòng (\n)
                 processed = processed.replace(/<br\s*\/?>/gi, '\n');
 
-                // 2. Thay thế ^ thành dấu gạch đứng |
-                // Dùng Regex /<\/>/g để tìm và thay thế TẤT CẢ các vị trí
+                // 2. Thay thế </> thành dấu gạch đứng | (nếu bạn dùng code cũ)
+                processed = processed.replace(/<\/>/g, '|');
+
+                // 3. [MỚI] Thay thế dấu mũ ^ thành dấu gạch đứng |
+                // Cú pháp: /\^/g  (Dấu gạch chéo ngược \ để báo đây là ký tự mũ thường)
                 processed = processed.replace(/\^/g, '|');
 
                 return processed;
             }
             return cell;
         });
-        // ---------------------------------------------------
 
-        // Kiểm tra STT phải là số mới lấy
+        // Kiểm tra STT
         if (!isNaN(parseInt(parts[0]))) {
             finalData.push(parts);
         }
