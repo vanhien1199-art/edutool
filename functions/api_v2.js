@@ -191,7 +191,7 @@ QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
             `;
 
             const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-3-pro-preview" });
             
             const result = await model.generateContent(prompt);
             const text = result.response.text();
@@ -207,3 +207,4 @@ QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
 
     return new Response("✅ API SECURITY ACTIVE", { status: 200, headers: corsHeaders });
 }
+
