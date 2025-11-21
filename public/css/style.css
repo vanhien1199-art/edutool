@@ -61,16 +61,82 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* 3. LICENSE BOX */
+/* --- CẬP NHẬT CSS CHO KHUNG LICENSE (Fix lỗi giao diện) --- */
+
 .license-box {
-    background: #eff6ff; border: 2px solid #bfdbfe;
-    border-radius: var(--radius); padding: 20px; margin: 30px 0;
+    /* 1. Ngắt dòng hoàn toàn khỏi các cột bên trên (Quan trọng) */
+    clear: both; 
+    
+    /* 2. Căn chỉnh bố cục */
+    background: #eff6ff;
+    border: 2px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 30px;       /* Tăng khoảng đệm cho thoáng */
+    margin: 40px auto;   /* Căn giữa khung và tách xa phần trên/dưới */
+    
+    /* 3. Dùng Flexbox để căn giữa nội dung bên trong */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Căn giữa theo chiều ngang */
+    justify-content: center;
+    
+    /* Đổ bóng nhẹ để nổi bật */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
-.license-box label { color: #1e40af; font-size: 1.1rem; }
+
+.license-box label {
+    color: #1e40af;
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 15px; /* Khoảng cách giữa chữ và ô nhập */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    width: 100%;
+    text-align: center; /* Căn giữa chữ */
+}
+
 .license-box input {
-    border-color: #60a5fa; font-family: monospace; font-weight: 800;
-    color: #1e40af; font-size: 1.2rem; text-align: center; letter-spacing: 1px;
+    /* 4. Giới hạn độ rộng ô nhập (Không cho dài hết màn hình) */
+    width: 100%;
+    max-width: 450px; /* Chỉ rộng tối đa 450px -> Nhìn gọn hơn hẳn */
+    
+    height: 55px;
+    border: 2px solid #60a5fa;
+    border-radius: 8px;
+    background-color: #fff;
+    
+    /* Font chữ bên trong */
+    font-family: 'Consolas', 'Monaco', monospace; /* Font mã code */
+    font-weight: 700;
+    font-size: 22px !important; /* Chữ to rõ */
+    color: #1e40af;
+    text-align: center;
+    letter-spacing: 2px;
+    
+    transition: all 0.2s ease;
 }
-.license-box small { display: block; margin-top: 8px; color: #6b7280; text-align: center; }
+
+.license-box input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.15); /* Hiệu ứng phát sáng khi nhập */
+    transform: scale(1.02); /* Phóng to nhẹ khi nhập */
+}
+
+.license-box input::placeholder {
+    font-size: 16px;
+    font-weight: normal;
+    color: #93c5fd;
+    letter-spacing: normal;
+    font-family: sans-serif;
+}
+
+.license-box small {
+    margin-top: 12px;
+    color: #64748b;
+    font-style: italic;
+    font-size: 14px;
+}
 
 /* 4. BUTTONS */
 button {
@@ -191,3 +257,4 @@ table.preview-table tr:hover { background-color: #eff6ff; }
     .six.columns { width: 100%; margin-left: 0; }
     table.preview-table th, table.preview-table td { font-size: 13px; padding: 8px; }
 }
+
