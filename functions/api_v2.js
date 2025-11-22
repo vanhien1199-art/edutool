@@ -97,8 +97,9 @@ QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
 - TUYỆT ĐỐI KHÔNG dùng dấu phẩy \`,\` để ngăn cách các cột. Nếu cần phân cách trong nội dung, dùng ; hoặc ^.
 - Không được sử dụng dấu \`|\` bên trong nội dung câu hỏi hay đáp án (hãy thay bằng dấu phẩy hoặc gạch chéo ^).
 - Chỉ xuất ra HEADER + DỮ LIỆU text thô (bắt đầu từ STT=1), không code block markdown, không giải thích thêm. Mọi trường trống phải có | ở cuối dòng.
-2. HEADER: ${header_str}
-3. QUY TẮC ĐIỀN DỮ LIỆU:
+- CÔNG THỨC TOÁN: Hãy viết ở dạng văn bản đơn giản nhất (Linear Format). Ví dụ: dùng 1/2 thay vì \frac{1}{2}, dùng ký hiệu unicode (α, β, π, ≈) thay vì mã LaTeX nếu có thể.
+- HEADER: ${header_str}
+QUY TẮC ĐIỀN DỮ LIỆU:
 1. **MỘT LỰA CHỌN**: \`Đáp án đúng\` ghi số (VD: \`2\`). Loại câu hỏi: "Một lựa chọn".
  - Cột 10 đến cột 19: ĐỂ TRỐNG HOÀN TOÀN (không ghi gì, kể cả dấu cách)
  - Cột 20 (Đảo đáp án): ghi 1 hoặc để trống đều được
@@ -238,6 +239,7 @@ QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
 
     return new Response("✅ PAY-PER-USE API ACTIVE", { status: 200, headers: corsHeaders });
 }
+
 
 
 
