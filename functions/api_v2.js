@@ -94,8 +94,8 @@ YÊU CẦU SỐ LƯỢNG:
 - Một lựa chọn: ${c1} | Đúng/Sai: ${c2} | Điền khuyết: ${c3} | Kéo thả: ${c4} | Chùm: ${c5} | Tự luận: ${c6}
 QUY ĐỊNH ĐỊNH DẠNG CỰC KỲ QUAN TRỌNG (TRÁNH LỖI):
 - Sử dụng dấu GẠCH ĐỨNG \`|\` làm ký tự ngăn cách giữa các cột (Delimiter). MỖI DÒNG PHẢI CÓ ĐÚNG 21 DẤU | (TỔNG 22 TRƯỜNG, KỂ CẢ TRỐNG Ở CUỐI).
-- TUYỆT ĐỐI KHÔNG dùng dấu phẩy \`,\` để ngăn cách các cột. Nếu cần phân cách trong nội dung, dùng ; hoặc ^.
-- Không được sử dụng dấu \`|\` bên trong nội dung câu hỏi hay đáp án (hãy thay bằng dấu phẩy hoặc gạch chéo ^).
+- TUYỆT ĐỐI KHÔNG dùng dấu phẩy \`,\` để ngăn cách các cột. Nếu cần phân cách trong nội dung, dùng ; hoặc #.
+- Không được sử dụng dấu \`|\` bên trong nội dung câu hỏi hay đáp án (hãy thay bằng dấu phẩy hoặc gạch chéo #).
 - Chỉ xuất ra HEADER + DỮ LIỆU text thô (bắt đầu từ STT=1), không code block markdown, không giải thích thêm. Mọi trường trống phải có | ở cuối dòng.
 - CÔNG THỨC TOÁN: Hãy viết ở dạng văn bản đơn giản nhất (Linear Format). Ví dụ: dùng 1/2 thay vì \frac{1}{2}, dùng ký hiệu unicode (α, β, π, ≈) thay vì mã LaTeX nếu có thể.
 - HEADER: ${header_str}
@@ -109,8 +109,8 @@ QUY TẮC ĐIỀN DỮ LIỆU:
 3. **ĐIỀN KHUYẾT**:
     - Nội dung: Dùng \`{{a}}\`, \`{{b}}\` (dấu ngoặc kép) để đánh dấu chỗ trống
     - Mỗi chỗ trống cung cấp 4 phương án để lựa chọn
-    - Cột 10 (Đáp án 1): Các phương án cho \`{{a}}\`, phân cách bằng dấu ^ (VD: lực^Lực^trọng lượng/khối lượng)
-    - Cột 11 (Đáp án 2): Các phương án cho \`{{b}}\`, phân cách bằng dấu ^(VD: diện tích^Diện tích^thể tích^chiều dài)
+    - Cột 10 (Đáp án 1): Các phương án cho \`{{a}}\`, phân cách bằng dấu # (VD: lực#Lực#trọng lượng/khối lượng)
+    - Cột 11 (Đáp án 2): Các phương án cho \`{{b}}\`, phân cách bằng dấu #(VD: diện tích#Diện tích#thể tích#chiều dài)
     - Cột 12 (Đáp án 3): ĐỂ TRỐNG
     - Cột 13 (Đáp án 4): ĐỂ TRỐNG
     - Cột 10 đến cột 19: ĐỂ TRỐNG HOÀN TOÀN (không ghi gì, kể cả dấu cách)
@@ -119,12 +119,12 @@ QUY TẮC ĐIỀN DỮ LIỆU:
    - Cột 9 (Đáp án đúng): Ghi \`1,2\` (dùng dấu phẩy bình thường)
    - Ví dụ mẫu:
      STT|Loại câu hỏi|...|Nội dung câu hỏi|Đáp án đúng|Đáp án 1|Đáp án 2|Đáp án 3|Đáp án 4|...|
-     1|Điền khuyết|...|Áp suất là độ lớn của {{a}} trên một đơn vị {{b}}|1,2|áp lực^lực^trọng lực^khối lượng|diện tích^Diện tích^bề mặt^thể tích||||...|
+     1|Điền khuyết|...|Áp suất là độ lớn của {{a}} trên một đơn vị {{b}}|1,2|áp lực#lực#trọng lực#khối lượng|diện tích#Diện tích#bề mặt#thể tích||||...|
 4. **KÉO THẢ**:
    - Nội dung: Dùng \`{{a}}\`, \`{{b}}\` (dấu ngoặc kép) để đánh dấu chỗ trống
    - Cung cấp 4 phương án kéo thả cho mỗi chỗ trống
-   - Cột 10 (Đáp án 1): 4 phương án cho \`{{a}}\`, phân cách bằng dấu ^  (VD: F^P^A^m)
-   - Cột 11 (Đáp án 2): 4 phương án cho \`{{b}}\`, phân cách bằng dấu ^  (VD: S^V^h^t)
+   - Cột 10 (Đáp án 1): 4 phương án cho \`{{a}}\`, phân cách bằng dấu #  (VD: F#P#A#m)
+   - Cột 11 (Đáp án 2): 4 phương án cho \`{{b}}\`, phân cách bằng dấu #  (VD: S#V#h#t)
    - Cột 12 (Đáp án 3): ĐỂ TRỐNG
    - Cột 13 (Đáp án 4): ĐỂ TRỐNG
    - Cột 9 (Đáp án đúng): Ghi \`1,2\` (dùng dấu phẩy bình thường)
@@ -134,7 +134,7 @@ QUY TẮC ĐIỀN DỮ LIỆU:
    - Cột 22 (Nhóm đáp án): Ghi "Có" (phân nhóm đáp án)
    - Ví dụ mẫu:
      STT|Loại câu hỏi|...|Nội dung câu hỏi|Đáp án đúng|Đáp án 1|Đáp án 2|Đáp án 3|Đáp án 4|...|Nhóm đáp án|
-     2|Kéo thả|...|Công thức tính áp suất: p = {{a}} / {{b}}|1,2|F^P^A^m|S^V^h^t||||...|Có|
+     2|Kéo thả|...|Công thức tính áp suất: p = {{a}} / {{b}}|1,2|F#P#A#m|S#V#h#t||||...|Có|
 5. **Câu chùm**: phải tuân thủ đúng các quy tắc sau (không sai dù chỉ 1 ký tự):
    Cấu trúc bắt buộc chỉ có 2 loại dòng
    Dòng 1: Câu dẫn (câu chùm chính)
@@ -239,6 +239,7 @@ QUY TẮC ĐIỀN DỮ LIỆU:
 
     return new Response("✅ PAY-PER-USE API ACTIVE", { status: 200, headers: corsHeaders });
 }
+
 
 
 
