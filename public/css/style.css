@@ -129,7 +129,7 @@ input:focus, select:focus, textarea:focus {
     margin: 40px 0;
     display: flex; flex-direction: column; align-items: center;
 }
-.license-box label { color: #0284c7; font-size: 1.2rem; font-weight: 800; margin-bottom: 15px;}
+.license-box label { color: #0284c7; font-size: 2rem; font-weight: 800; margin-bottom: 15px;}
 .license-box input {
     border-color: #38bdf8; font-family: monospace; font-weight: 700;
     color: #0369a1; font-size: 1.4rem !important; text-align: center; letter-spacing: 2px;
@@ -230,5 +230,6 @@ table.preview-table th { background: #f1f5f9; font-weight: 700; position: sticky
     .six.columns { width: 100%; margin-left: 0; }
     .license-box input { width: 100%; }
 }
+
 
 
