@@ -102,7 +102,7 @@ body {
 hr { border: 0; height: 1px; background: var(--border-color); margin: 2rem 0; }
 
 /* 4. FORM ELEMENTS */
-label { font-weight: 600; margin-bottom: 6px; display: block; color: var(--text-main); font-size: 18px; }
+label { font-weight: 600; margin-bottom: 6px; display: block; color: var(--text-main); font-size: 1.3rem; }
 
 input[type="text"], input[type="number"], select, textarea {
     display: block; width: 100%; height: 50px; font-size: 16px;
@@ -230,6 +230,7 @@ table.preview-table th { background: #f1f5f9; font-weight: 700; position: sticky
     .six.columns { width: 100%; margin-left: 0; }
     .license-box input { width: 100%; }
 }
+
 
 
 
