@@ -1,62 +1,64 @@
 // File: public/js/excel-gen.js
-// Phiên bản: MATH FIX (Hỗ trợ hiển thị công thức Toán đẹp hơn)
+// Phiên bản: MATH FIXED & LOGIC ORDER (Đã sửa lỗi hiển thị công thức x|1/3)
 
 let GLOBAL_EXCEL_DATA = [];
 let GLOBAL_FILENAME = "";
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("--- CLIENT LOADED: MATH SUPPORT VERSION ---");
+    console.log("--- SYSTEM READY: MATH FIXED VERSION ---");
     
     const btnGenerate = document.getElementById('btnGenerate');
-    if (btnGenerate) btnGenerate.addEventListener('click', handleGenerate);
-
     const btnDownload = document.getElementById('btnDownload');
+
+    if (btnGenerate) btnGenerate.addEventListener('click', handleGenerate);
     if (btnDownload) btnDownload.addEventListener('click', handleDownload);
 });
 
-// 1. XỬ LÝ CHÍNH
+// --- 1. XỬ LÝ CHÍNH ---
 async function handleGenerate() {
     const btn = document.getElementById('btnGenerate');
     const loading = document.getElementById('loadingMsg');
     const error = document.getElementById('errorMsg');
     const previewSection = document.getElementById('previewSection');
 
+    // Reset UI
     if(loading) loading.style.display = 'block';
     if(error) error.style.display = 'none';
-    if(previewSection) previewSection.style.display = 'none'; 
+    if(previewSection) previewSection.style.display = 'none';
     if(btn) btn.disabled = true;
 
     try {
-        const licenseKey = document.getElementById('license_key').value.trim();
+        // 1a. Validate License
+        const licenseKeyInput = document.getElementById('license_key');
+        const licenseKey = licenseKeyInput ? licenseKeyInput.value.trim() : "";
         if (!licenseKey) throw new Error("Vui lòng nhập MÃ KÍCH HOẠT!");
 
+        // 1b. Validate Form
         const payload = {
             license_key: licenseKey,
-            mon_hoc: document.getElementById('mon_hoc').value.trim(),
-            lop: document.getElementById('lop').value.trim(),
-            bo_sach: document.getElementById('bo_sach').value,
-            bai_hoc: document.getElementById('bai_hoc').value.trim(),
-            c1: parseInt(document.getElementById('c1').value)||0,
-            c2: parseInt(document.getElementById('c2').value)||0,
-            c3: parseInt(document.getElementById('c3').value)||0,
-            c4: parseInt(document.getElementById('c4').value)||0,
-            c5: parseInt(document.getElementById('c5').value)||0,
-            c6: parseInt(document.getElementById('c6').value)||0
+            mon_hoc: getValue('mon_hoc'),
+            lop: getValue('lop'),
+            bo_sach: getValue('bo_sach'),
+            bai_hoc: getValue('bai_hoc'),
+            c1: getNum('c1'), c2: getNum('c2'), c3: getNum('c3'),
+            c4: getNum('c4'), c5: getNum('c5'), c6: getNum('c6')
         };
 
-        // VALIDATION
+        // Kiểm tra giới hạn (Validation)
         const LIMITS = { c1: 30, c2: 10, c3: 10, c4: 10, c5: 5, c6: 10 };
         if (payload.c1 > LIMITS.c1) throw new Error(`Quá nhiều câu Trắc nghiệm! Max: ${LIMITS.c1}`);
         if (payload.c2 > LIMITS.c2) throw new Error(`Quá nhiều câu Đúng/Sai! Max: ${LIMITS.c2}`);
-        // ... (Giữ nguyên các validation khác nếu cần) ...
         
-        if (!payload.mon_hoc || !payload.bai_hoc) throw new Error("Thiếu Môn học hoặc Chủ đề!");
+        const total = payload.c1 + payload.c2 + payload.c3 + payload.c4 + payload.c5 + payload.c6;
+        if (total === 0) throw new Error("Vui lòng nhập số lượng câu hỏi!");
+        if (total > 70) throw new Error("Tổng số câu hỏi quá lớn (>70). Vui lòng chia nhỏ.");
+        if (!payload.mon_hoc || !payload.bai_hoc) throw new Error("Thiếu thông tin Môn học hoặc Chủ đề!");
 
-        // GỌI API
+        // 1c. Gọi API
         const timestamp = new Date().getTime();
         const apiUrl = `/api_v2?t=${timestamp}`; 
 
-        console.log("Calling:", apiUrl);
+        console.log("Calling API:", apiUrl);
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -64,16 +66,18 @@ async function handleGenerate() {
         });
 
         const rawText = await response.text();
-        if (response.status === 403) throw new Error("⛔ MÃ KÍCH HOẠT KHÔNG ĐÚNG/HẾT HẠN!");
+        
+        if (response.status === 403) throw new Error("⛔ MÃ KÍCH HOẠT KHÔNG ĐÚNG HOẶC HẾT HẠN!");
         if (response.status === 402) throw new Error("⛔ MÃ ĐÃ HẾT LƯỢT. VUI LÒNG MUA THÊM!");
         if (!response.ok) throw new Error(`Lỗi Server ${response.status}: ${rawText}`);
 
         let data;
-        try { data = JSON.parse(rawText); } catch (e) { throw new Error("Lỗi JSON."); }
+        try { data = JSON.parse(rawText); } catch (e) { throw new Error("Lỗi dữ liệu từ Server."); }
         
         const content = data.result || data.answer;
-        if (!content) throw new Error("Không có dữ liệu.");
+        if (!content) throw new Error("AI không trả về nội dung câu hỏi.");
 
+        // 1d. Xử lý dữ liệu
         processDataForPreview(content, payload);
         renderPreviewTable();
         
@@ -91,106 +95,76 @@ async function handleGenerate() {
     }
 }
 
-// --- HÀM XỬ LÝ TOÁN HỌC (PHIÊN BẢN NÂNG CẤP PRO) ---
+// --- 2. BỘ XỬ LÝ TOÁN HỌC MẠNH MẼ (QUAN TRỌNG) ---
 function cleanMathFormulas(text) {
     if (!text) return "";
     let s = text;
 
-    // 1. Xóa các ký hiệu LaTeX bao quanh ($...$ hoặc \(...\) hoặc \[...\])
+    // 1. Dọn dẹp thẻ bao quanh
     s = s.replace(/\\\[(.*?)\\\]/g, '$1'); 
     s = s.replace(/\\\((.*?)\\\)/g, '$1'); 
     s = s.replace(/\$(.*?)\$/g, '$1');     
 
-    // 2. Xử lý CĂN BẬC 2 (\sqrt)
-    // \sqrt{abc} -> √(abc) : Thêm ngoặc để rõ ràng phạm vi căn
-    s = s.replace(/\\sqrt\{(.+?)\}/g, '√($1)');
-    // \sqrt x -> √x : Căn đơn giản
+    // 2. Xóa rác LaTeX
+    const garbage = ['\\displaystyle', '\\limits', '\\left', '\\right', '\\mathrm', '\\mathbf'];
+    garbage.forEach(g => { s = s.split(g).join(''); });
+
+    [cite_start]// 3. XỬ LÝ CĂN BẬC N (Fix lỗi sqrt[6]) [cite: 4]
+    // \sqrt[n]{x} -> (x)^(1/n) hoặc n√x. Chọn n√x cho gọn.
+    s = s.replace(/\\sqrt\s*\[\s*(.+?)\s*\]\s*\{\s*(.+?)\s*\}/g, '($1)√($2)'); 
+    s = s.replace(/\\sqrt\s*\[\s*(.+?)\s*\]\s*(.+?)/g, '($1)√($2)'); // Trường hợp không có ngoặc nhọn
+
+    // Xử lý căn bậc 2 thường
+    s = s.replace(/\\sqrt\s*\{\s*(.+?)\s*\}/g, '√($1)');
     s = s.replace(/\\sqrt\s+(.)/g, '√$1');
 
-    // 3. Xử lý PHÂN SỐ (\frac)
-    // \frac{tu}{mau} -> (tu/mau)
-    s = s.replace(/\\frac\{(.+?)\}\{(.+?)\}/g, '($1/$2)');
+    // 4. XỬ LÝ PHÂN SỐ
+    s = s.replace(/\\frac\s*\{\s*(.+?)\s*\}\s*\{\s*(.+?)\s*\}/g, '($1/$2)');
+    s = s.replace(/\\frac\s+(\w)\s+(\w)/g, '($1/$2)');
 
-    // 4. Xử lý SỐ MŨ (Superscripts) thông dụng
-    // Thay thế ^2, ^3, ^0 thành ký tự nhỏ phía trên
-    s = s.replace(/\^2/g, '²');
-    s = s.replace(/\^3/g, '³');
+    [cite_start]// 5. XỬ LÝ SỐ MŨ (Fix lỗi x|1/3) [cite: 36, 37]
+    // Chiến thuật: Chuyển hết dấu ^ trong toán thành ký tự khác hoặc Unicode để không bị nhầm là dấu phân cách.
+    
+    // Mũ đơn giản: ^2, ^3 -> Unicode
+    s = s.replace(/\^2/g, '²'); 
+    s = s.replace(/\^3/g, '³'); 
     s = s.replace(/\^0/g, '⁰');
-    // Các số mũ khác: x^{n} -> x^n (Giữ nguyên dấu ^ để Excel hiểu là mũ)
-    s = s.replace(/\^\{(.+?)\}/g, '^$1');
+    
+    // Mũ phức tạp: ^{1/3} -> ⁽¹/³⁾ hoặc **(1/3)
+    // Ở đây ta chuyển thành ** (dấu mũ trong Excel/Code) để tránh bị thay thế thành |
+    s = s.replace(/\^\{\s*(.+?)\s*\}/g, '**($1)'); 
+    s = s.replace(/\^([0-9a-zA-Z]+)/g, '**$1'); // x^y -> x**y
 
-    // 5. Xử lý CHỈ SỐ DƯỚI (Subscripts) đơn giản
-    // H_2 -> H2, x_i -> xi (Bỏ dấu gạch dưới cho gọn, hoặc giữ lại tùy ý)
-    s = s.replace(/_\{(.+?)\}/g, '$1'); // x_{ab} -> xab
-    s = s.replace(/_(.)/g, '$1');       // x_i -> xi
+    // 6. CÁC KÝ TỰ KHÁC
+    s = s.replace(/_\{(.+?)\}/g, '$1'); // Chỉ số dưới
+    s = s.replace(/\\vec\s*\{(.+?)\}/g, '$1→'); 
+    s = s.replace(/\\hat\s*\{(.+?)\}/g, '∠$1');
+    s = s.replace(/\\mid/g, '|'); // Giá trị tuyệt đối giữ nguyên |
 
-    // 6. BẢNG MÃ KÝ TỰ ĐẶC BIỆT (Unicode Mapping)
+    // Map ký tự đặc biệt
     const replacements = {
-        // Quan hệ
-        '\\\\approx': '≈', 
-        '\\\\le': '≤', '\\\\leq': '≤',
-        '\\\\ge': '≥', '\\\\geq': '≥',
-        '\\\\ne': '≠', '\\\\neq': '≠',
-        '\\\\pm': '±', '\\\\mp': '∓',
-        
-        // Phép toán
-        '\\\\times': '×',
-        '\\\\div': '÷',
-        '\\\\cdot': '·',
-        '\\\\ast': '*',
-        
-        // Hình học / Góc
-        '\\\\circ': '°',
-        '\\\\angle': '∠',
-        '\\\\triangle': '∆',
-        '\\\\perp': '⊥',
-        '\\\\parallel': '∥',
-        '\\\\degree': '°',
-
-        // Tập hợp / Logic
-        '\\\\in': '∈', '\\\\notin': '∉',
-        '\\\\subset': '⊂', '\\\\subseteq': '⊆',
-        '\\\\cup': '∪', '\\\\cap': '∩',
-        '\\\\emptyset': '∅',
-        '\\\\forall': '∀', '\\\\exists': '∃',
-        '\\\\rightarrow': '→', '\\\\Rightarrow': '⇒',
-        '\\\\leftrightarrow': '↔', '\\\\Leftrightarrow': '⇔',
-        '\\\\infty': '∞',
-
-        // Hy Lạp (Thường dùng trong Lý/Toán)
-        '\\\\alpha': 'α', '\\\\beta': 'β', '\\\\gamma': 'γ', 
-        '\\\\delta': 'δ', '\\\\Delta': 'Δ',
-        '\\\\pi': 'π', 
-        '\\\\theta': 'θ', 
-        '\\\\lambda': 'λ', 
-        '\\\\omega': 'ω', '\\\\Omega': 'Ω',
-        '\\\\sigma': 'σ', '\\\\Sigma': 'Σ',
-        '\\\\mu': 'µ', // Micro
-        '\\\\rho': 'ρ',
-
-        // Ký tự khác
-        '\\\\sqrt': '√', // Fallback nếu regex trên chưa bắt hết
-        '\\\\{': '{', '\\\\}': '}', '\\\\%': '%',
+        '\\\\approx': '≈', '\\\\le': '≤', '\\\\leq': '≤', '\\\\ge': '≥', '\\\\geq': '≥',
+        '\\\\ne': '≠', '\\\\neq': '≠', '\\\\pm': '±', '\\\\times': '×', '\\\\div': '÷',
+        '\\\\cdot': '.', '\\\\ast': '*', '\\\\circ': '°', '\\\\angle': '∠', 
+        '\\\\in': '∈', '\\\\notin': '∉', '\\\\infty': '∞', '\\\\rightarrow': '→',
+        '\\\\alpha': 'α', '\\\\beta': 'β', '\\\\gamma': 'γ', '\\\\Delta': 'Δ', 
+        '\\\\pi': 'π', '\\\\theta': 'θ', '\\\\lambda': 'λ', '\\\\omega': 'ω', '\\\\Omega': 'Ω',
+        '\\\\sqrt': '√', '\\\\{': '{', '\\\\}': '}', '\\\\%': '%',
     };
 
-    // Thực hiện thay thế hàng loạt
     for (const [key, value] of Object.entries(replacements)) {
-        // Dùng split/join để replace all nhanh nhất
         s = s.split(key).join(value);
     }
-    
-    // 7. Dọn dẹp các dấu gạch chéo thừa còn sót lại của LaTeX
-    // Ví dụ \text{...} chỉ lấy nội dung bên trong
+
+    // Dọn dẹp
     s = s.replace(/\\text\{(.+?)\}/g, '$1');
     s = s.replace(/\\/g, ''); 
-
-    // 8. Xóa khoảng trắng thừa
     s = s.replace(/\s+/g, ' ').trim();
 
     return s;
 }
 
-// 2. HÀM XỬ LÝ DỮ LIỆU
+// --- 3. XỬ LÝ DỮ LIỆU EXCEL ---
 function processDataForPreview(rawText, payload) {
     const cleanText = rawText.replace(/```csv/g, "").replace(/```/g, "").trim();
     const lines = cleanText.split('\n');
@@ -198,6 +172,7 @@ function processDataForPreview(rawText, payload) {
     const finalData = [];
     const TOTAL_COLS = 22;
 
+    // Header
     let row1 = new Array(TOTAL_COLS).fill(""); row1[7] = "IMPORT CÂU HỎI";
     let row2 = new Array(TOTAL_COLS).fill(""); row2[7] = "(Chú ý: các cột bôi đỏ là bắt buộc)";
     let row3 = new Array(TOTAL_COLS).fill(""); 
@@ -223,10 +198,15 @@ function processDataForPreview(rawText, payload) {
             if (typeof cell === 'string') {
                 let p = cell;
                 p = p.replace(/<br\s*\/?>/gi, '\n'); // Xuống dòng
-                p = p.replace(/\^/g, '|');          // Dấu mũ -> gạch đứng
                 
-                // GỌI HÀM LÀM ĐẸP TOÁN HỌC Ở ĐÂY
+                // --- QUAN TRỌNG: THỨ TỰ XỬ LÝ ---
+                
+                // 1. Xử lý Toán học TRƯỚC (Để bảo vệ các dấu mũ trong công thức)
                 p = cleanMathFormulas(p); 
+                
+                // 2. Sau khi xử lý toán, các dấu ^ của toán đã thành ** hoặc ²,
+                // nên dấu ^ còn lại chính là dấu phân cách đáp án -> Thay thành |
+                p = p.replace(/\^/g, '|');          
                 
                 return p;
             }
@@ -241,7 +221,7 @@ function processDataForPreview(rawText, payload) {
     GLOBAL_FILENAME = `NHCH_${safeMon}_${new Date().getTime()}.xlsx`;
 }
 
-// 3. PREVIEW TABLE
+// --- 4. HIỂN THỊ BẢNG ---
 function renderPreviewTable() {
     const table = document.getElementById('dataTable');
     if(!table) return;
@@ -275,7 +255,7 @@ function renderPreviewTable() {
     table.appendChild(tbody);
 }
 
-// 4. DOWNLOAD
+// --- 5. TẢI XUỐNG & HELPER ---
 function handleDownload() {
     if (!GLOBAL_EXCEL_DATA || GLOBAL_EXCEL_DATA.length === 0) {
         alert("Chưa có dữ liệu!"); return;
@@ -287,3 +267,6 @@ function handleDownload() {
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
     XLSX.writeFile(wb, GLOBAL_FILENAME);
 }
+
+function getValue(id) { const el = document.getElementById(id); return el ? el.value.trim() : ""; }
+function getNum(id) { const el = document.getElementById(id); return el ? (parseInt(el.value) || 0) : 0; }
