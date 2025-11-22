@@ -1,46 +1,33 @@
 // File: public/js/excel-gen.js
-// Phiên bản: FINAL INTEGRATED (Validation + Advanced Math + Preview)
+// Phiên bản: ULTIMATE MATH (Xử lý toán học tối ưu nhất cho Excel)
 
-// --- BIẾN TOÀN CỤC ---
 let GLOBAL_EXCEL_DATA = [];
 let GLOBAL_FILENAME = "";
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("--- SYSTEM LOADED: FINAL INTEGRATED VERSION ---");
-    
+    console.log("--- CLIENT LOADED: ULTIMATE MATH VERSION ---");
     const btnGenerate = document.getElementById('btnGenerate');
     const btnDownload = document.getElementById('btnDownload');
-
-    if (btnGenerate) {
-        btnGenerate.addEventListener('click', handleGenerate);
-    } else {
-        console.error("Lỗi: Không tìm thấy nút btnGenerate");
-    }
-
-    if (btnDownload) {
-        btnDownload.addEventListener('click', handleDownload);
-    }
+    if (btnGenerate) btnGenerate.addEventListener('click', handleGenerate);
+    if (btnDownload) btnDownload.addEventListener('click', handleDownload);
 });
 
-// --- 1. XỬ LÝ NÚT TẠO DỮ LIỆU ---
+// --- 1. XỬ LÝ CHÍNH ---
 async function handleGenerate() {
     const btn = document.getElementById('btnGenerate');
     const loading = document.getElementById('loadingMsg');
     const error = document.getElementById('errorMsg');
     const previewSection = document.getElementById('previewSection');
 
-    // Reset UI
     if(loading) loading.style.display = 'block';
     if(error) error.style.display = 'none';
-    if(previewSection) previewSection.style.display = 'none';
+    if(previewSection) previewSection.style.display = 'none'; 
     if(btn) btn.disabled = true;
 
     try {
-        // 1a. Validate License
         const licenseKey = document.getElementById('license_key').value.trim();
         if (!licenseKey) throw new Error("Vui lòng nhập MÃ KÍCH HOẠT!");
 
-        // 1b. Lấy dữ liệu
         const payload = {
             license_key: licenseKey,
             mon_hoc: document.getElementById('mon_hoc').value.trim(),
@@ -55,30 +42,20 @@ async function handleGenerate() {
             c6: parseInt(document.getElementById('c6').value)||0
         };
 
-        // ---------------------------------------------------------
-        // 🛑 KIỂM TRA GIỚI HẠN SỐ LƯỢNG (VALIDATION)
-        // ---------------------------------------------------------
+        // VALIDATION
         const LIMITS = { c1: 30, c2: 10, c3: 10, c4: 10, c5: 5, c6: 10 };
+        if (payload.c1 > LIMITS.c1) throw new Error(`Quá nhiều câu Trắc nghiệm! Max: ${LIMITS.c1}`);
+        if (payload.c2 > LIMITS.c2) throw new Error(`Quá nhiều câu Đúng/Sai! Max: ${LIMITS.c2}`);
         
-        if (payload.c1 > LIMITS.c1) throw new Error(`Quá nhiều câu Trắc nghiệm! Tối đa: ${LIMITS.c1}`);
-        if (payload.c2 > LIMITS.c2) throw new Error(`Quá nhiều câu Đúng/Sai! Tối đa: ${LIMITS.c2}`);
-        if (payload.c3 > LIMITS.c3) throw new Error(`Quá nhiều câu Điền khuyết! Tối đa: ${LIMITS.c3}`);
-        if (payload.c4 > LIMITS.c4) throw new Error(`Quá nhiều câu Kéo thả! Tối đa: ${LIMITS.c4}`);
-        if (payload.c5 > LIMITS.c5) throw new Error(`Quá nhiều câu Chùm! Tối đa: ${LIMITS.c5}`);
-        if (payload.c6 > LIMITS.c6) throw new Error(`Quá nhiều câu Tự luận! Tối đa: ${LIMITS.c6}`);
-
         const total = payload.c1 + payload.c2 + payload.c3 + payload.c4 + payload.c5 + payload.c6;
         if (total === 0) throw new Error("Vui lòng nhập số lượng câu hỏi!");
-        if (total > 65) throw new Error(`Tổng số câu hỏi (${total}) quá lớn. Vui lòng giảm xuống dưới 65 câu.`);
-        
         if (!payload.mon_hoc || !payload.bai_hoc) throw new Error("Thiếu thông tin Môn học hoặc Chủ đề!");
-        // ---------------------------------------------------------
 
-        // 1c. Gọi API
+        // CALL API
         const timestamp = new Date().getTime();
         const apiUrl = `/api_v2?t=${timestamp}`; 
 
-        console.log("Calling API:", apiUrl);
+        console.log("Calling:", apiUrl);
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -86,20 +63,16 @@ async function handleGenerate() {
         });
 
         const rawText = await response.text();
-        
-        // Xử lý lỗi HTTP
-        if (response.status === 403) throw new Error("⛔ MÃ KÍCH HOẠT SAI HOẶC KHÔNG TỒN TẠI!");
+        if (response.status === 403) throw new Error("⛔ MÃ KÍCH HOẠT KHÔNG ĐÚNG HOẶC HẾT HẠN!");
         if (response.status === 402) throw new Error("⛔ MÃ ĐÃ HẾT LƯỢT. VUI LÒNG MUA THÊM!");
         if (!response.ok) throw new Error(`Lỗi Server ${response.status}: ${rawText}`);
 
-        // Parse JSON
         let data;
-        try { data = JSON.parse(rawText); } catch (e) { throw new Error("Lỗi dữ liệu từ Server (JSON Parse Error)."); }
+        try { data = JSON.parse(rawText); } catch (e) { throw new Error("Lỗi JSON từ Server."); }
         
         const content = data.result || data.answer;
-        if (!content) throw new Error("AI không trả về nội dung câu hỏi.");
+        if (!content) throw new Error("Không có dữ liệu.");
 
-        // 1d. Xử lý dữ liệu & Hiển thị
         processDataForPreview(content, payload);
         renderPreviewTable();
         
@@ -110,122 +83,112 @@ async function handleGenerate() {
 
     } catch (err) {
         console.error(err);
-        if(error) { 
-            error.innerHTML = `<strong>⚠️ ${err.message}</strong>`; 
-            error.style.display = 'block'; 
-        }
+        if(error) { error.innerHTML = `<strong>⚠️ ${err.message}</strong>`; error.style.display = 'block'; }
     } finally {
         if(loading) loading.style.display = 'none';
         if(btn) btn.disabled = false;
     }
 }
 
-// --- 2. BỘ XỬ LÝ TOÁN HỌC (FINAL REFINED - BẠN CUNG CẤP) ---
+// --- 2. BỘ XỬ LÝ TOÁN HỌC THÔNG MINH (SMART MATH PARSER) ---
 function cleanMathFormulas(text) {
     if (!text) return "";
     let s = text;
 
     // 1. Dọn dẹp các thẻ bao quanh
-    s = s.replace(/\\\[([\s\S]*?)\\\]/g, '$1'); 
-    s = s.replace(/\\\(([\s\S]*?)\\\)/g, '$1'); 
-    s = s.replace(/\$([\s\S]*?)\$/g, '$1');     
+    s = s.replace(/\\\[(.*?)\\\]/g, '$1'); 
+    s = s.replace(/\\\((.*?)\\\)/g, '$1'); 
+    s = s.replace(/\$(.*?)\$/g, '$1');     
 
-    // 2. Xóa rác LaTeX
-    const garbage = [
-        '\\displaystyle', '\\limits', '\\nolimits', 
-        '\\left', '\\right', '\\big', '\\Big', '\\bigg', '\\Bigg',
-        '\\mathrm', '\\mathbf', '\\it', '\\rm'
-    ];
-    garbage.forEach(cmd => {
-        s = s.split(cmd).join('');
-    });
+    // 2. Xóa các từ khóa định dạng LaTeX không cần thiết
+    s = s.replace(/\\displaystyle/g, '');
+    s = s.replace(/\\limits/g, '');
+    s = s.replace(/\\left/g, '');   // Xóa \left (Ví dụ \left( -> ( )
+    s = s.replace(/\\right/g, '');  // Xóa \right
 
-    // 3. XỬ LÝ CẤU TRÚC PHỨC TẠP
-    // Căn bậc n: \sqrt[3]{x} -> ³√(x)
-    s = s.replace(/\\sqrt\s*\[\s*(.+?)\s*\]\s*\{\s*(.+?)\s*\}/g, '($1)√($2)'); 
-    
-    // Căn bậc 2
-    s = s.replace(/\\sqrt\s*\{\s*(.+?)\s*\}/g, '√($1)');
-    s = s.replace(/\\sqrt\s+(.)/g, '√$1');
-
-    // Phân số
-    s = s.replace(/\\frac\s*\{\s*(.+?)\s*\}\s*\{\s*(.+?)\s*\}/g, '($1/$2)');
-    s = s.replace(/\\frac\s+(\w)\s+(\w)/g, '($1/$2)');
-
-    // Số mũ
-    const superscripts = {
-        '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
-        '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
-        '+': '⁺', '-': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', 'n': 'ⁿ'
-    };
-    s = s.replace(/\^([0-9n+\-=()])/g, (match, p1) => superscripts[p1] || match);
-    s = s.replace(/\^\{\s*([0-9n+\-=()]+)\s*\}/g, (match, p1) => {
-        return p1.split('').map(c => superscripts[c] || c).join('');
-    });
-    s = s.replace(/\^\{\s*(.+?)\s*\}/g, '^($1)');
-
-    // Chỉ số dưới
-    s = s.replace(/_\{\s*(.+?)\s*\}/g, '$1'); 
-    s = s.replace(/_(\w)/g, '$1');
-
-    // Vector
-    s = s.replace(/\\vec\s*\{\s*(.+?)\s*\}/g, '$1→');
-    s = s.replace(/\\vec\s+(\w)/g, '$1→');
-    s = s.replace(/\\overrightarrow\s*\{\s*(.+?)\s*\}/g, '$1→');
-
-    // Góc
-    s = s.replace(/\\hat\s*\{\s*(.+?)\s*\}/g, '∠$1');
-    s = s.replace(/\\widehat\s*\{\s*(.+?)\s*\}/g, '∠$1');
-
-    // Giá trị tuyệt đối
-    s = s.replace(/\\mid/g, '|');
-    s = s.replace(/\\|/g, '|');
-
-    // Hàm số
-    s = s.replace(/\\log_?\{\s*(.+?)\s*\}\s*\{\s*(.+?)\s*\}/g, 'log$1($2)');
-    s = s.replace(/\\ln\s*\{\s*(.+?)\s*\}/g, 'ln($1)');
-    s = s.replace(/\\lim_?\{\s*(.+?)\s*\}/g, 'lim($1)');
-    s = s.replace(/\\int_?\{\s*(.+?)\s*\}^?\{\s*(.+?)\s*\}/g, '∫($1->$2)');
-
-    // 4. BẢNG MAP KÝ TỰ
+    // 3. BẢNG MAP KÝ TỰ (Mở rộng đầy đủ)
     const replacements = {
-        '\\\\approx': '≈', '\\\\le': '≤', '\\\\leq': '≤', '\\\\ge': '≥', '\\\\geq': '≥',
-        '\\\\ne': '≠', '\\\\neq': '≠', '\\\\pm': '±', '\\\\mp': '∓', '\\\\equiv': '≡',
-        '\\\\sim': '~', '\\\\cong': '≅',
-        '\\\\times': '×', '\\\\div': '÷', '\\\\cdot': '·', '\\\\ast': '*', '\\\\star': '★',
+        // Quan hệ & So sánh
+        '\\\\approx': '≈', '\\\\le': '≤', '\\\\leq': '≤',
+        '\\\\ge': '≥', '\\\\geq': '≥', '\\\\ne': '≠', '\\\\neq': '≠',
+        '\\\\pm': '±', '\\\\mp': '∓', '\\\\equiv': '≡',
+        
+        // Phép toán
+        '\\\\times': '×', '\\\\div': '÷', '\\\\cdot': '·', '\\\\ast': '*',
         '\\\\oplus': '⊕', '\\\\otimes': '⊗',
+        
+        // Hình học & Góc
         '\\\\circ': '°', '\\\\angle': '∠', '\\\\triangle': '∆',
         '\\\\perp': '⊥', '\\\\parallel': '∥', '\\\\deg': '°',
+        
+        // Tập hợp & Logic
         '\\\\in': '∈', '\\\\notin': '∉', '\\\\subset': '⊂', '\\\\subseteq': '⊆',
         '\\\\cup': '∪', '\\\\cap': '∩', '\\\\emptyset': '∅', '\\\\O': '∅',
-        '\\\\forall': '∀', '\\\\exists': '∃', '\\\\nexists': '∄',
+        '\\\\forall': '∀', '\\\\exists': '∃',
         '\\\\rightarrow': '→', '\\\\Rightarrow': '⇒', '\\\\leftrightarrow': '↔', '\\\\Leftrightarrow': '⇔',
-        '\\\\infty': '∞', '\\\\partial': '∂', '\\\\nabla': '∇',
-        '\\\\alpha': 'α', '\\\\beta': 'β', '\\\\gamma': 'γ', '\\\\delta': 'δ', '\\\\Delta': 'Δ',
-        '\\\\epsilon': 'ε', '\\\\varepsilon': 'ε', '\\\\zeta': 'ζ', '\\\\eta': 'η',
-        '\\\\theta': 'θ', '\\\\vartheta': 'θ', '\\\\iota': 'ι', '\\\\kappa': 'κ',
-        '\\\\lambda': 'λ', '\\\\Lambda': 'Λ', '\\\\mu': 'µ', '\\\\nu': 'ν',
-        '\\\\xi': 'ξ', '\\\\Xi': 'Ξ', '\\\\pi': 'π', '\\\\Pi': 'Π',
-        '\\\\rho': 'ρ', '\\\\sigma': 'σ', '\\\\Sigma': 'Σ', '\\\\tau': 'τ',
-        '\\\\upsilon': 'υ', '\\\\phi': 'φ', '\\\\varphi': 'φ', '\\\\Phi': 'Φ',
-        '\\\\chi': 'χ', '\\\\psi': 'ψ', '\\\\Psi': 'Ψ', '\\\\omega': 'ω', '\\\\Omega': 'Ω',
-        '\\\\sqrt': '√', '\\\\{': '{', '\\\\}': '}', '\\\\%': '%', '\\\\_': '_',
+        '\\\\infty': '∞',
+
+        // Hy Lạp
+        '\\\\alpha': 'α', '\\\\beta': 'β', '\\\\gamma': 'γ', '\\\\delta': 'δ',
+        '\\\\Delta': 'Δ', '\\\\pi': 'π', '\\\\theta': 'θ', '\\\\lambda': 'λ', 
+        '\\\\omega': 'ω', '\\\\Omega': 'Ω', '\\\\sigma': 'σ', '\\\\Sigma': 'Σ',
+        '\\\\mu': 'µ', '\\\\rho': 'ρ', '\\\\phi': 'φ', '\\\\epsilon': 'ε',
+
+        // Ký tự đặc biệt khác
+        '\\\\sqrt': '√', '\\\\{': '{', '\\\\}': '}', '\\\\%': '%',
     };
 
-    const sortedKeys = Object.keys(replacements).sort((a, b) => b.length - a.length);
-    sortedKeys.forEach(key => {
-        s = s.split(key).join(replacements[key]);
-    });
+    for (const [key, value] of Object.entries(replacements)) {
+        s = s.split(key).join(value);
+    }
+
+    // 4. XỬ LÝ CÁC CẤU TRÚC PHỨC TẠP (Regex)
+
+    // Căn bậc 2: \sqrt{abc} -> √(abc)
+    s = s.replace(/\\sqrt\{(.+?)\}/g, '√($1)');
+    s = s.replace(/\\sqrt\s+(.)/g, '√$1');
+
+    // Phân số: \frac{a}{b} -> (a/b)
+    s = s.replace(/\\frac\{(.+?)\}\{(.+?)\}/g, '($1/$2)');
+
+    // Số mũ (Superscript): ^2 -> ²
+    s = s.replace(/\^2/g, '²');
+    s = s.replace(/\^3/g, '³');
+    s = s.replace(/\^0/g, '⁰');
+    s = s.replace(/\^\{(.+?)\}/g, '^($1)'); // Mũ phức tạp: a^{x+1} -> a^(x+1)
+
+    // Chỉ số dưới (Subscript): x_1 -> x1
+    s = s.replace(/_\{(.+?)\}/g, '$1'); 
+    s = s.replace(/_(.)/g, '$1');
+
+    // Vector: \vec{a} -> a->
+    s = s.replace(/\\vec\{(.+?)\}/g, '$1→');
+
+    // Góc: \hat{A} -> ∠A
+    s = s.replace(/\\hat\{(.+?)\}/g, '∠$1');
+
+    // Giá trị tuyệt đối: |x| (LaTeX dùng | hoặc \mid)
+    s = s.replace(/\\mid/g, '|');
+
+    // Logarit & Lim & Tích phân (Chuyển thành dạng text dễ đọc)
+    // \log_{2}{x} -> log2(x)
+    s = s.replace(/\\log_\{(.+?)\}\{(.+?)\}/g, 'log$1($2)');
+    s = s.replace(/\\ln\{(.+?)\}/g, 'ln($1)');
+    s = s.replace(/\\lim_\{(.+?)\}/g, 'lim($1)');
+    s = s.replace(/\\int_\{(.+?)\}^\{(.+?)\}/g, '∫($1->$2)'); // Tích phân cận
 
     // 5. Dọn dẹp cuối cùng
-    s = s.replace(/\\text\s*\{\s*(.+?)\s*\}/g, '$1');
-    s = s.replace(/\\/g, '');
+    // Xóa lệnh text{}
+    s = s.replace(/\\text\{(.+?)\}/g, '$1'); 
+    // Xóa dấu gạch chéo thừa
+    s = s.replace(/\\/g, ''); 
+    // Xóa khoảng trắng thừa
     s = s.replace(/\s+/g, ' ').trim();
 
     return s;
 }
 
-// --- 3. XỬ LÝ DỮ LIỆU (PARSE & PREVIEW) ---
+// --- 3. XỬ LÝ DỮ LIỆU ---
 function processDataForPreview(rawText, payload) {
     const cleanText = rawText.replace(/```csv/g, "").replace(/```/g, "").trim();
     const lines = cleanText.split('\n');
@@ -257,9 +220,12 @@ function processDataForPreview(rawText, payload) {
         parts = parts.map(cell => {
             if (typeof cell === 'string') {
                 let p = cell;
-                p = p.replace(/<br\s*\/?>/gi, '\n'); // Xuống dòng
-                p = p.replace(/\^/g, '|');          // Thay dấu mũ
-                p = cleanMathFormulas(p);           // Làm đẹp toán học
+                p = p.replace(/<br\s*\/?>/gi, '\n'); 
+                p = p.replace(/\^/g, '|');          
+                
+                // ÁP DỤNG HÀM LÀM ĐẸP TOÁN HỌC
+                p = cleanMathFormulas(p); 
+                
                 return p;
             }
             return cell;
@@ -273,11 +239,10 @@ function processDataForPreview(rawText, payload) {
     GLOBAL_FILENAME = `NHCH_${safeMon}_${new Date().getTime()}.xlsx`;
 }
 
-// --- 4. HIỂN THỊ BẢNG PREVIEW ---
+// --- 4. HIỂN THỊ BẢNG ---
 function renderPreviewTable() {
     const table = document.getElementById('dataTable');
     if(!table) return;
-    
     table.innerHTML = ""; 
     const displayLimit = 20; 
     const dataToShow = GLOBAL_EXCEL_DATA.slice(3);
