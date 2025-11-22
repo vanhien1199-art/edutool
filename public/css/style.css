@@ -1,260 +1,232 @@
 /* File: public/css/style.css */
-/* Phiên bản: COLLAPSIBLE PREVIEW & RESPONSIVE TABLE */
+/* Phiên bản: FULL PRO (Header + Footer + Modern UI) */
 
 :root {
     --primary-color: #2563eb;
     --primary-hover: #1d4ed8;
     --success-color: #10b981;
     --success-hover: #059669;
-    --bg-color: #f3f4f6;
+    --bg-color: #f8fafc;
     --card-bg: #ffffff;
-    --text-main: #111827;
-    --border-color: #d1d5db;
-    --radius: 8px;
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --header-height: 70px;
+    --radius: 10px;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-/* 1. CẤU HÌNH CHUNG */
+/* 1. RESET & GLOBAL */
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-size: 16px;
     line-height: 1.6;
     background-color: var(--bg-color);
     color: var(--text-main);
     margin: 0;
-    padding: 20px;
+    padding: 0; /* Xóa padding body cũ để Header full màn hình */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Đẩy Footer xuống đáy */
 }
 
-.container {
-    background-color: var(--card-bg);
+/* 2. HEADER (ĐẦU TRANG) */
+.main-header {
+    background-color: #fff;
+    height: var(--header-height);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-inner {
     max-width: 1000px;
     margin: 0 auto;
-    padding: 40px;
-    border-radius: 16px;
-    box-shadow: var(--shadow-md);
-    border: 1px solid rgba(0,0,0,0.05);
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
 }
 
-h2 {
+.logo-area {
+    font-size: 1.5rem;
+    font-weight: 800;
     color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-area a {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-left: 25px;
+    transition: color 0.2s;
+    font-size: 0.95rem;
+}
+
+.nav-area a:hover, .nav-area a.active {
+    color: var(--primary-color);
+}
+
+.nav-area i { margin-right: 5px; }
+
+/* 3. CONTAINER (NỘI DUNG CHÍNH) */
+.container.main-content {
+    background-color: var(--card-bg);
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 40px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    flex: 1; /* Đẩy footer xuống */
+    width: 95%; /* Responsive */
+}
+
+.page-title {
+    color: var(--text-main);
     font-weight: 800;
     text-align: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 5px;
     font-size: 2rem;
 }
+.sub-title {
+    text-align: center;
+    color: var(--text-muted);
+    margin-bottom: 30px;
+}
 
-hr { border: 0; height: 1px; background: #e5e7eb; margin: 2rem 0; }
+hr { border: 0; height: 1px; background: var(--border-color); margin: 2rem 0; }
 
-/* 2. FORM & INPUT */
-label { font-weight: 700; margin-bottom: 8px; display: block; color: #374151; }
+/* 4. FORM ELEMENTS */
+label { font-weight: 600; margin-bottom: 6px; display: block; color: var(--text-main); font-size: 0.95rem; }
 
 input[type="text"], input[type="number"], select, textarea {
     display: block; width: 100%; height: 50px; font-size: 16px;
-    padding: 10px 15px; color: #111827; background-color: #fff;
-    border: 1px solid #d1d5db; border-radius: var(--radius);
-    box-sizing: border-box; font-family: inherit;
+    padding: 10px 15px; color: var(--text-main); background-color: #fff;
+    border: 1px solid var(--border-color); border-radius: var(--radius);
+    box-sizing: border-box; font-family: inherit; transition: border 0.2s;
 }
 textarea { height: 120px; resize: vertical; }
 input:focus, select:focus, textarea:focus {
     border-color: var(--primary-color); outline: 0;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* 3. LICENSE BOX */
-/* --- CẬP NHẬT CSS CHO KHUNG LICENSE (Fix lỗi giao diện) --- */
-
+/* 5. LICENSE BOX */
 .license-box {
-    /* 1. Ngắt dòng hoàn toàn khỏi các cột bên trên (Quan trọng) */
-    clear: both; 
+    /* Sửa lỗi layout: clear float */
+    clear: both;
+    display: block; 
     
-    /* 2. Căn chỉnh bố cục */
-    background: #eff6ff;
-    border: 2px solid #bfdbfe;
-    border-radius: 12px;
-    padding: 30px;       /* Tăng khoảng đệm cho thoáng */
-    margin: 40px auto;   /* Căn giữa khung và tách xa phần trên/dưới */
-    
-    /* 3. Dùng Flexbox để căn giữa nội dung bên trong */
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Căn giữa theo chiều ngang */
-    justify-content: center;
-    
-    /* Đổ bóng nhẹ để nổi bật */
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    background: #f0f9ff; 
+    border: 2px solid #bae6fd;
+    border-radius: var(--radius); 
+    padding: 30px; 
+    margin: 40px 0;
+    display: flex; flex-direction: column; align-items: center;
 }
-
-.license-box label {
-    color: #1e40af;
-    font-size: 18px;
-    font-weight: 800;
-    margin-bottom: 15px; /* Khoảng cách giữa chữ và ô nhập */
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    display: block;
-    width: 100%;
-    text-align: center; /* Căn giữa chữ */
-}
-
+.license-box label { color: #0284c7; font-size: 1.2rem; font-weight: 800; margin-bottom: 15px;}
 .license-box input {
-    /* 4. Giới hạn độ rộng ô nhập (Không cho dài hết màn hình) */
-    width: 100%;
-    max-width: 450px; /* Chỉ rộng tối đa 450px -> Nhìn gọn hơn hẳn */
-    
-    height: 55px;
-    border: 2px solid #60a5fa;
-    border-radius: 8px;
-    background-color: #fff;
-    
-    /* Font chữ bên trong */
-    font-family: 'Consolas', 'Monaco', monospace; /* Font mã code */
-    font-weight: 700;
-    font-size: 22px !important; /* Chữ to rõ */
-    color: #1e40af;
-    text-align: center;
-    letter-spacing: 2px;
-    
-    transition: all 0.2s ease;
+    border-color: #38bdf8; font-family: monospace; font-weight: 700;
+    color: #0369a1; font-size: 1.4rem !important; text-align: center; letter-spacing: 2px;
+    max-width: 400px; height: 60px;
 }
+.license-box small { margin-top: 10px; color: #64748b; font-style: italic; }
 
-.license-box input:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.15); /* Hiệu ứng phát sáng khi nhập */
-    transform: scale(1.02); /* Phóng to nhẹ khi nhập */
-}
-
-.license-box input::placeholder {
-    font-size: 16px;
-    font-weight: normal;
-    color: #93c5fd;
-    letter-spacing: normal;
-    font-family: sans-serif;
-}
-
-.license-box small {
-    margin-top: 12px;
-    color: #64748b;
-    font-style: italic;
-    font-size: 14px;
-}
-
-/* 4. BUTTONS */
+/* 6. BUTTONS */
 button {
-    display: flex; align-items: center; justify-content: center;
-    height: 55px; font-size: 1.1rem; font-weight: 700; text-transform: uppercase;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    height: 60px; font-size: 1.1rem; font-weight: 700; text-transform: uppercase;
     cursor: pointer; border: none; border-radius: var(--radius);
-    transition: all 0.2s; width: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.2s; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 .button-primary { background-color: var(--primary-color); color: white; }
 .button-primary:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
-.button-primary:disabled { background-color: #93c5fd; cursor: not-allowed; transform: none; }
+.button-primary:disabled { background-color: #94a3b8; cursor: not-allowed; transform: none; }
 
 .button-success { background-color: var(--success-color); color: white; margin-top: 20px; }
 .button-success:hover { background-color: var(--success-hover); transform: translateY(-2px); }
 
-/* 5. DROPDOWN PREVIEW (MỚI - GỌN GÀNG HƠN) */
-#previewSection {
-    margin-top: 40px;
-    display: none; /* JS sẽ hiện cái này lên */
-}
-
-/* Thẻ Details tạo hiệu ứng đóng mở */
+/* 7. PREVIEW & TABLE */
+#previewSection { margin-top: 40px; display: none; }
 details.preview-dropdown {
-    background-color: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: var(--radius);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    overflow: hidden;
+    background: #fff; border: 1px solid var(--border-color);
+    border-radius: var(--radius); overflow: hidden;
+}
+summary {
+    padding: 15px 20px; font-weight: 700; cursor: pointer;
+    background: #f8fafc; list-style: none; display: flex; justify-content: space-between;
+}
+summary:hover { background: #f1f5f9; }
+summary::after { content: "▼"; color: var(--text-muted); transition: 0.3s; }
+details[open] summary::after { transform: rotate(180deg); }
+
+.table-wrapper { overflow: auto; max-height: 500px; border-top: 1px solid var(--border-color); }
+table.preview-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 800px; }
+table.preview-table th, table.preview-table td {
+    padding: 12px 15px; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: top;
+    max-width: 300px; word-wrap: break-word;
+}
+table.preview-table th { background: #f1f5f9; font-weight: 700; position: sticky; top: 0; }
+
+/* 8. FOOTER (CHÂN TRANG) - MỚI */
+.main-footer {
+    background-color: #0f172a; /* Xanh đen sang trọng */
+    color: #e2e8f0;
+    padding: 50px 0;
+    margin-top: auto; /* Đẩy xuống đáy */
 }
 
-/* Thanh tiêu đề bấm vào để mở */
-details.preview-dropdown summary {
-    padding: 15px 20px;
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: #374151;
-    background-color: #f9fafb;
-    cursor: pointer;
-    list-style: none; /* Ẩn tam giác mặc định */
+.footer-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 40px;
+}
+
+.footer-col h3 { color: #fff; font-size: 1.2rem; margin-bottom: 15px; font-weight: 700; }
+.footer-col p { color: #94a3b8; font-size: 0.95rem; margin-bottom: 5px; }
+
+.contact-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 20px;
+    transition: 0.2s;
+}
+.contact-btn.fb { background-color: #1877f2; color: white; }
+.contact-btn.fb:hover { background-color: #155eeb; }
+
+.zalo-area {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    transition: background 0.2s;
+    gap: 15px;
+    background: rgba(255,255,255,0.05);
+    padding: 10px;
+    border-radius: 8px;
+}
+.qr-code {
+    width: 80px;
+    height: 80px;
+    border-radius: 4px;
+    border: 2px solid #fff;
 }
 
-details.preview-dropdown summary:hover {
-    background-color: #f3f4f6;
-}
-
-/* Tạo mũi tên chỉ xuống tùy chỉnh */
-details.preview-dropdown summary::after {
-    content: "▼"; 
-    font-size: 0.8rem;
-    color: #6b7280;
-    transition: transform 0.3s;
-}
-
-details.preview-dropdown[open] summary::after {
-    transform: rotate(180deg); /* Xoay mũi tên khi mở */
-}
-
-/* Khung chứa bảng bên trong */
-.table-wrapper {
-    max-height: 500px; /* Giới hạn chiều cao, quá dài sẽ cuộn dọc */
-    overflow-y: auto;
-    overflow-x: auto; /* Cuộn ngang nếu tràn viền */
-    border-top: 1px solid #e5e7eb;
-}
-
-/* Bảng dữ liệu */
-table.preview-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-    min-width: 800px; /* Đảm bảo bảng không bị co quá nhỏ */
-}
-
-table.preview-table th, 
-table.preview-table td {
-    padding: 12px 15px;
-    border-bottom: 1px solid #e5e7eb;
-    text-align: left;
-    vertical-align: top;
-    
-    /* QUAN TRỌNG: Chống tràn nội dung */
-    word-wrap: break-word;
-    max-width: 300px; /* Giới hạn chiều rộng mỗi cột */
-    white-space: normal; /* Cho phép xuống dòng */
-}
-
-table.preview-table th {
-    background-color: #f8fafc;
-    font-weight: 700;
-    color: #1e293b;
-    position: sticky; /* Cố định tiêu đề khi cuộn dọc */
-    top: 0;
-    z-index: 10;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-
-table.preview-table tr:nth-child(even) { background-color: #fcfcfc; }
-table.preview-table tr:hover { background-color: #eff6ff; }
-
-/* 6. TRẠNG THÁI */
-#statusArea { margin-top: 25px; text-align: center; }
-.loading, .error, .success { padding: 12px 20px; border-radius: 8px; font-weight: 600; display: inline-block; }
-.loading { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
-.loading::after { content: " ⏳"; animation: spin 1s infinite; }
-.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
-.success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* MOBILE FIX */
-@media (max-width: 640px) {
-    .container { padding: 20px; margin: 10px; }
-    h2 { font-size: 1.5rem; }
+/* MOBILE */
+@media (max-width: 768px) {
+    .footer-container { flex-direction: column; text-align: center; }
+    .zalo-area { flex-direction: column; width: fit-content; margin: 0 auto; }
+    .header-inner { padding: 0 15px; }
+    .nav-area a { display: none; } /* Ẩn menu trên mobile cho gọn */
     .six.columns { width: 100%; margin-left: 0; }
-    table.preview-table th, table.preview-table td { font-size: 13px; padding: 8px; }
+    .license-box input { width: 100%; }
 }
-
