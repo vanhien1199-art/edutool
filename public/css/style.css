@@ -65,7 +65,7 @@ body {
     font-weight: 600;
     margin-left: 25px;
     transition: color 0.2s;
-    font-size: 1.5rem;
+    font-size: 1.3rem;
 }
 
 .nav-area a:hover, .nav-area a.active {
@@ -230,6 +230,7 @@ table.preview-table th { background: #f1f5f9; font-weight: 700; position: sticky
     .six.columns { width: 100%; margin-left: 0; }
     .license-box input { width: 100%; }
 }
+
 
 
 
