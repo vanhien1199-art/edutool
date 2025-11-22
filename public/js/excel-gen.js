@@ -312,7 +312,7 @@ function processDataForPreview(rawText, payload) {
             for (var j = 0; j < parts.length; j++) {
                 var cellValue = parts[j] || "";
                 cellValue = cellValue.replace(/<br\s*\/?>/gi, '\n');
-                cellValue = cellValue.replace(/\^/g, '|');
+                cellValue = cellValue.replace(/\#/g, '|');
                 cellValue = cleanMathFormulas(cellValue);
                 parts[j] = cellValue;
             }
@@ -480,3 +480,4 @@ if (typeof module !== 'undefined' && module.exports) {
         getQuestionCount
     };
 }
+
