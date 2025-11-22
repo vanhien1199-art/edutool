@@ -3,14 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tạo Ngân Hàng Câu Hỏi AI</title>
+    <title>EduTool AI - Trợ Lý Soạn Đề</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css"> 
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h2>🛡️ Công cụ tạo hàng loạt câu hỏi cho vnedu lms</h2>
+
+    <header class="main-header">
+        <div class="header-inner">
+            <div class="logo-area">
+                <i class="fas fa-robot"></i> 
+                <span>EduTool AI</span>
+            </div>
+            <nav class="nav-area">
+                <a href="/" class="nav-link active">
+                    <i class="fas fa-home"></i> Trang chủ
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-book-open"></i> Hướng dẫn
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container main-content">
+        <h2 class="page-title">🛡️ Công Cụ Soạn Đề Thông Minh</h2>
+        <p class="sub-title">Giải pháp tạo ngân hàng câu hỏi tự động cho VNEDU / LMS</p>
         <hr>
         
         <div class="row">
@@ -64,6 +85,7 @@
                         <input type="number" id="c6" value="0" min="0" max="10">
                     </div>
                 </div>
+            </div>
         </div>
 
         <div class="license-box">
@@ -72,22 +94,22 @@
             <small style="color: #666; display: block; margin-top: 5px;">* Liên hệ Admin để mua mã kích hoạt.</small>
         </div>
 
-        <button class="button-primary" id="btnGenerate">🚀 BẮT ĐẦU TẠO DỮ LIỆU</button>
+        <button class="button-primary" id="btnGenerate">
+            <i class="fas fa-rocket"></i> BẮT ĐẦU TẠO DỮ LIỆU
+        </button>
         
         <div id="statusArea">
             <p class="loading" id="loadingMsg" style="display: none;">Đang kết nối AI và xử lý dữ liệu...</p>
             <p class="error" id="errorMsg" style="display: none;"></p>
         </div>
 
-       <div id="previewSection">
+        <div id="previewSection">
             <h4 style="text-align: center; color: #1a73e8; margin-bottom: 15px;">🎉 Đã tạo xong dữ liệu!</h4>
             
             <details class="preview-dropdown" open>
                 <summary>📋 Bấm vào đây để Xem chi tiết / Thu gọn bảng dữ liệu</summary>
-                
                 <div class="table-wrapper">
-                    <table class="preview-table" id="dataTable">
-                        </table>
+                    <table class="preview-table" id="dataTable"></table>
                 </div>
             </details>
 
@@ -95,13 +117,36 @@
                 (Bảng chỉ hiển thị 20 dòng đầu để xem trước. File tải về sẽ đầy đủ 100%)
             </p>
 
-            <button class="button-success" id="btnDownload">📥 TẢI FILE EXCEL (.XLSX)</button>
+            <button class="button-success" id="btnDownload">
+                <i class="fas fa-file-excel"></i> TẢI FILE EXCEL (.XLSX)
+            </button>
         </div>
     </div>
+
+    <footer class="main-footer">
+        <div class="footer-container">
+            
+            <div class="footer-col info">
+                <h3>EduTool AI</h3>
+                <p>© 2024 Bản quyền thuộc về <strong>[Tên Của Bạn]</strong>.</p>
+                <p>Giải pháp công nghệ giáo dục 4.0</p>
+            </div>
+
+            <div class="footer-col contact">
+                <h3>Hỗ trợ khách hàng</h3>
+                <a href="https://facebook.com/LINK_CUA_BAN" target="_blank" class="contact-btn fb">
+                    <i class="fab fa-facebook-f"></i> Nhắn tin Facebook
+                </a>
+                
+                <div class="zalo-area">
+                    <span><i class="fas fa-qrcode"></i> Quét mã Zalo:</span>
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://zalo.me/SDT_CUA_BAN" alt="Zalo QR" class="qr-code">
+                </div>
+            </div>
+
+        </div>
+    </footer>
 
     <script src="js/excel-gen.js"></script>
 </body>
 </html>
-
-
-
